@@ -1,0 +1,69 @@
+#' Get Example Translations from an Excel File
+#'
+#' @description
+#' Extracts example translations from a structured Excel file.
+#' This function reads an Excel sheet, filters the content based on item type
+#' and optionally by instrument name, and returns a table of source texts
+#' and their corresponding target translations. It is designed to facilitate
+#' the retrieval of specific translation examples for use in translation workflows
+#' or quality assurance processes.
+#'
+#' @param file_path A single string. The full path to the Excel file (.xlsx or .xls).
+#'   The Excel file is expected to contain survey items or other texts
+#'   and their translations, organized in a specific tabular format.
+#'   The function reads the first sheet of the Excel file by default.
+#'
+#'   \strong{Expected Excel File Structure:}
+#'   \itemize{
+#'     \item \strong{Header Row:} The first row of the sheet must be a header row,
+#'       defining the names of the columns.
+#'     \item \strong{Essential Columns:} The sheet must include the following columns
+#'       (column names are case-sensitive as used in the function):
+#'       \itemize{
+#'         \item \code{Type}: A textual column indicating the category or type of the
+#'           translation item (e.g., "Item", "Instruction", "Response Scale").
+#'           This column is used for filtering via the \code{type} argument of this function.
+#'         \item \code{Instrument}: A textual column identifying the specific survey,
+#'           questionnaire, or document the item belongs to (e.g., "PHQ-9", "General Survey").
+#'           This column is used for filtering via the \code{instrument} argument.
+#'         \item \code{Source}: A textual column containing the original text in the
+#'           source language (e.g., English).
+#'         \item \code{Target}: A textual column containing the translated text in the
+#'           target language (e.g., Norwegian).
+#'       }
+#'   }
+#'
+#' @param type Optional. A single string specifying the value in the 'Type' column
+#'   to filter by. Defaults to "Item".
+#' @param instrument Optional. A single string or \code{NULL}. If a string is provided,
+#'   it specifies the value in the 'Instrument' column to filter by. If \code{NULL} (the default),
+#'   no filtering based on instrument is performed after the initial 'Type' filtering.
+#'
+#' @returns
+#' A \code{data.table} containing two columns:
+#' \itemize{
+#'   \item \code{Source}: The source language text.
+#'   \item \code{Target}: The corresponding target language text.
+#' }
+#' The table includes rows that match the filtering criteria specified by the
+#' \code{type} and \code{instrument} arguments.
+#'
+#' @importFrom readxl read_xlsx
+#' @importFrom data.table data.table as.data.table
+#' @importFrom magrittr %>%
+#'
+#' @export
+example_translations = function(file_path, type = "Item", instrument = NULL) {
+
+  examples =
+    read_xlsx(file_path) %>%
+    data.table() %>%
+    .[Type == type]
+
+  if (!is.null(instrument))
+    examples =
+      examples[Instrument == instrument]
+
+  return(examples[, .(Source, Target)])
+
+}
