@@ -13,7 +13,7 @@
 #' A data.table containing the translated text.
 #'
 #' @export
-llm_translate = function(source_file, example_file = "Sample surveys translation.xlsx", example_type = "Item", batch_size = NULL) {
+llm_translate = function(source_file, example_file = here("data/Sample surveys translation.xlsx"), example_type = "Item", batch_size = NULL) {
 
   bp = base_prompt()
 
