@@ -1,4 +1,4 @@
-Package: SurveryTranslator
+Package: SurveyTranslator
 Type: Package
 Title: Translate instructions, items and scales from youth mental health instruments
 Version: 0.1.0
@@ -22,5 +22,3 @@ Imports:
   ellmer,
   jsonlite,
   glue
-URL: https://github.com/gbiele/SurveryTranslator
-BugReports: https://github.com/gbiele/SurveryTranslator/issues
