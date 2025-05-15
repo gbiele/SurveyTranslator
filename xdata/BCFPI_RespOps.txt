@@ -1,1 +1,0 @@
-NEVER true, SOMETIMES True, or OFTEN true.

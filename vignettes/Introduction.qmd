@@ -1,0 +1,153 @@
+---
+title: "Translating Survey Items with Large Language Models"
+format:
+  html:
+    embed-resources: true
+date: "`r Sys.Date()`"
+execute:
+  echo: true      # Show code
+  warning: false  # Hide warnings
+  message: false  # Hide messages
+  error: true     # Show errors
+vignette: >
+  %\VignetteIndexEntry{Building a database}
+  %\VignetteEngine{quarto::html} 
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+The `{surveytranslate}` package enables structured, consistent, and culturally appropriate translations of survey items using large language models (LLMs). It is designed for researchers and practitioners working with mental health instruments, especially in youth contexts.
+
+This vignette shows how to use the core function `llm_translate()` to translate survey items, instructions, and response options from English into another language (e.g., Norwegian), using example-based prompting and customizable translation guidelines.
+
+## Setup
+
+Before using the package, ensure you have one or more API keys for supported LLMs set in your `.Renviron` file:
+
+-   `GOOGLE_API_KEY` for Google Gemini
+-   `OPENAI_API_KEY` for OpenAI
+-   `ANTHROPIC_API_KEY` for Claude (Anthropic)
+
+The function will automatically select the best available backend.
+
+```{r}
+#| message: false
+library(SurveyTranslator)
+library(here)
+library(magrittr)
+```
+
+## Basic Translation
+
+Translate a list of items stored in a plain text file, guided by example translations from an Excel spreadsheet:
+
+```{r}
+translated_items =
+  llm_translate(
+    source_file = here("zdata/BCFPI_items.txt"),
+    example_file = here("zdata/Sample surveys translation.xlsx"),
+    batch_size = 15
+  )
+```
+
+```{r}
+head(translated_items) %>% knitr::kable()
+```
+
+## Using Custom Guidelines
+
+You can provide a set of additional guidelines to influence translation style and tone. This is useful when working with specific age groups or cultural contexts:
+
+```{r}
+my_guidelines =
+'"Age-Appropriate Language: Use terminology and phrasing that are easily understandable and appropriate for adolescents aged 13–18.",
+"Consistency with Research and Practice: Ensure that the language is consistent with terminology typically used in youth mental health research and clinical practice in the target country and language.",
+"Natural Phrasing: Do not translate idioms, common expressions, or culturally specific phrases literally. Instead, use equivalent expressions that sound natural and familiar to youth in the target language.",
+"Preserve Psychological Meaning: Retain the intended meaning and nuance of each item, even if this requires rewording or restructuring. Clarity and conceptual equivalence are more important than literal translation.",
+"Cultural Appropriateness: Ensure that all content is culturally relevant and sensitive. Avoid references or terms that may be confusing, inappropriate, or irrelevant in the local context.",
+"Alignment with Existing Translations: Where applicable, align terminology with existing validated translations of similar mental health instruments used in the target language.",
+"Translator Notes: If a direct translation is not feasible or if you had to make interpretive decisions, please include a brief note explaining your choices."
+'
+
+translated_items_b =
+  llm_translate(
+    source_file = here("zdata/BCFPI_items.txt"),
+    example_file = here("zdata/Sample surveys translation.xlsx"),
+    guidelines = my_guidelines,
+    batch_size = 15
+  )
+```
+
+Compare translations:
+
+```{r}
+different_translations =
+  which(translated_items[, translated_item] != translated_items_b[, translated_item])
+
+cbind(
+  translated_items[different_translations],
+  translated_items_b[different_translations, translated_item]
+) %>% 
+  head() %>% 
+  knitr::kable()
+```
+
+## Translating Instructions and Scales
+
+Change the `example_type` argument to translate other components such as instructions or response options:
+
+```{r}
+translated_instructions =
+  llm_translate(
+    source_file = here("zdata/BCFPI_instructions.txt"),
+    example_file = here("zdata/Sample surveys translation.xlsx"),
+    example_type = "Instructions"
+  ) 
+
+translated_scales =
+  llm_translate(
+    source_file = here("zdata/BCFPI_RespOps.txt"),
+    example_file = here("zdata/Sample surveys translation.xlsx"),
+    example_type = "Response options"
+  )
+```
+
+## Exporting Translations to Word or Excel
+
+You can save the translated output as a Word document or Excel file for distribution or review.
+
+### Save to Excel
+
+```{r, eval=FALSE}
+writexl::write_xlsx(translated_items, path = here("translated_items.xlsx"))
+```
+
+### Save to Word
+
+To save the table to a Word document, use `flextable`:
+
+```{r, eval=FALSE}
+library(flextable)
+library(officer)
+
+ft <- flextable(translated_items_b) %>% 
+  width(j = "original_item",     width = 2.75) %>%
+  width(j = "translated_item", width = 2.75) %>%
+  set_table_properties(layout = "fixed", width = 1)
+doc <- read_docx() %>%
+  body_add_flextable(ft)
+print(doc, target = here("translated_items.docx"))
+```
+
+## Summary
+
+The `{surveytranslate}` package simplifies high-quality questionnaire translation using LLMs by leveraging:
+
+-   Domain-specific prompting
+-   Example-based learning
+-   Customizable translation guidelines
+-   Batch processing
+-   Support for multiple language model providers
+
+This tool helps researchers ensure conceptual equivalence and cultural appropriateness of translated mental health instruments, particularly in adolescent populations.

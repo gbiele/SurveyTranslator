@@ -2,24 +2,35 @@
 % Please edit documentation in R/base_prompt.R
 \name{base_prompt}
 \alias{base_prompt}
-\title{Base prompt for translation task}
+\title{Construct prompt for questionnaire translation}
 \usage{
 base_prompt(
-  source_language = "English",
-  target_language = "Norwegian",
-  domain = "Youth mental health"
+  source_language = NULL,
+  target_language = NULL,
+  domain = NULL,
+  guidelines = NULL
 )
 }
 \arguments{
-\item{source_language}{Optional. A single string specifying the source language.}
+\item{source_language}{Character. Source language (e.g., `"English"`).}
 
-\item{target_language}{Optional. A single string specifying the target language.}
+\item{target_language}{Character. Target language (e.g., `"Norwegian"`).}
 
-\item{domain}{Optional. A single string specifying the domain of the content.}
+\item{domain}{Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.}
+
+\item{guidelines}{Character vector or string. Optional additional translation guidelines. If `NULL`, a default set of instructions is used.
+If a custom value is provided, it is appended to the defaults.}
 }
 \value{
-A single string formatted as a JSON structure for the translation task prompt.
+A character string containing a complete JSON prompt with placeholders `{EXAMPLES}` and `{ITEMS}` to be filled in later.
 }
 \description{
-A short description...
+Builds a JSON-formatted prompt string for use with a language model, including structured translation instructions,
+language and domain context, and formatting expectations.
 }
+\details{
+The returned prompt is designed to instruct the LLM to return a list of objects, each containing
+`original_item` and `translated_item` keys. Guidelines include formatting rules and translation consistency requirements.
+If custom `guidelines` are provided, they are appended after the default ones.
+}
+\keyword{internal}
