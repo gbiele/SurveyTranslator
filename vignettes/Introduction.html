@@ -2234,6 +2234,11 @@ vertical-align: -.125em;
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] &quot;### Guideline for translation:&quot;
+
+      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
+      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
+      &quot;Translate questions as questions, and statements as statements.&quot;,
+      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
 NULL</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
@@ -2244,7 +2249,9 @@ Processed batch 4 of 4 </code></pre>
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(translated_items) <span class="sc">%&gt;%</span> knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a> knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">head</span>(translated_items)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>   )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
@@ -2264,11 +2271,11 @@ Processed batch 4 of 4 </code></pre>
 </tr>
 <tr class="even">
 <td style="text-align: left;">fail to finish things you start</td>
-<td style="text-align: left;">Har vanskelig for å fullføre ting du starter på</td>
+<td style="text-align: left;">Har problemer med å fullføre ting du starter på</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">are easily distracted or have trouble sticking to an activity</td>
-<td style="text-align: left;">Blir lett distrahert eller har problemer med å holde fokus på en aktivitet</td>
+<td style="text-align: left;">Blir lett distrahert eller har problemer med å holde deg til en aktivitet</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">jump from one activity to another</td>
@@ -2310,7 +2317,20 @@ Processed batch 4 of 4 </code></pre>
 <span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] &quot;### Guideline for translation:&quot;
-[1] &quot;\n      \&quot;Ensure each item is translated accurately and retains its original meaning.\&quot;,\n      \&quot;Maintain consistency in terminology and phrasing across all items.\&quot;,\n      \&quot;Translate questions as questions, and statements as statements.\&quot;,\n      \&quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.\&quot;\n\n\&quot;Age-Appropriate Language: Use terminology and phrasing that are easily understandable and appropriate for adolescents aged 13–18.\&quot;,\n\&quot;Consistency with Research and Practice: Ensure that the language is consistent with terminology typically used in youth mental health research and clinical practice in the target country and language.\&quot;,\n\&quot;Natural Phrasing: Do not translate idioms, common expressions, or culturally specific phrases literally. Instead, use equivalent expressions that sound natural and familiar to youth in the target language.\&quot;,\n\&quot;Preserve Psychological Meaning: Retain the intended meaning and nuance of each item, even if this requires rewording or restructuring. Clarity and conceptual equivalence are more important than literal translation.\&quot;,\n\&quot;Cultural Appropriateness: Ensure that all content is culturally relevant and sensitive. Avoid references or terms that may be confusing, inappropriate, or irrelevant in the local context.\&quot;,\n\&quot;Alignment with Existing Translations: Where applicable, align terminology with existing validated translations of similar mental health instruments used in the target language.\&quot;,\n\&quot;Translator Notes: If a direct translation is not feasible or if you had to make interpretive decisions, please include a brief note explaining your choices.\&quot;\n&quot;</code></pre>
+
+      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
+      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
+      &quot;Translate questions as questions, and statements as statements.&quot;,
+      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
+
+&quot;Age-Appropriate Language: Use terminology and phrasing that are easily understandable and appropriate for adolescents aged 13–18.&quot;,
+&quot;Consistency with Research and Practice: Ensure that the language is consistent with terminology typically used in youth mental health research and clinical practice in the target country and language.&quot;,
+&quot;Natural Phrasing: Do not translate idioms, common expressions, or culturally specific phrases literally. Instead, use equivalent expressions that sound natural and familiar to youth in the target language.&quot;,
+&quot;Preserve Psychological Meaning: Retain the intended meaning and nuance of each item, even if this requires rewording or restructuring. Clarity and conceptual equivalence are more important than literal translation.&quot;,
+&quot;Cultural Appropriateness: Ensure that all content is culturally relevant and sensitive. Avoid references or terms that may be confusing, inappropriate, or irrelevant in the local context.&quot;,
+&quot;Alignment with Existing Translations: Where applicable, align terminology with existing validated translations of similar mental health instruments used in the target language.&quot;,
+&quot;Translator Notes: If a direct translation is not feasible or if you had to make interpretive decisions, please include a brief note explaining your choices.&quot;
+NULL</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Processed batch 1 of 4 
@@ -2324,17 +2344,17 @@ Processed batch 4 of 4 </code></pre>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>different_translations <span class="ot">=</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">which</span>(translated_items[, translated_item] <span class="sc">!=</span> translated_items_b[, translated_item])</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  translated_items[different_translations],</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  translated_items_b[different_translations, translated_item]</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span> </span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>comp <span class="ot">=</span> </span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  translated_items[different_translations],</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  translated_items_b[different_translations, translated_item]</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(comp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 31%">
-<col style="width: 33%">
+<col style="width: 29%">
+<col style="width: 35%">
 <col style="width: 34%">
 </colgroup>
 <thead>
@@ -2347,13 +2367,23 @@ Processed batch 4 of 4 </code></pre>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">fail to finish things you start</td>
-<td style="text-align: left;">Har vanskelig for å fullføre ting du starter på</td>
 <td style="text-align: left;">Har problemer med å fullføre ting du starter på</td>
+<td style="text-align: left;">Har problemer med å fullføre ting du har begynt på</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">are easily distracted or have trouble sticking to an activity</td>
+<td style="text-align: left;">Blir lett distrahert eller har problemer med å holde deg til en aktivitet</td>
+<td style="text-align: left;">Blir lett distrahert eller har problemer med å holde på med en aktivitet</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">have difficulty following directions or instructions</td>
 <td style="text-align: left;">Har vanskelig for å følge retninger eller instruksjoner</td>
-<td style="text-align: left;">Har vanskelig for å følge anvisninger eller instruksjoner</td>
+<td style="text-align: left;">Har vanskelig for å følge veiledninger eller instruksjoner</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">fidget</td>
+<td style="text-align: left;">Fikle</td>
+<td style="text-align: left;">Fikler</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">blame others for your own mistakes</td>
@@ -2361,19 +2391,9 @@ Processed batch 4 of 4 </code></pre>
 <td style="text-align: left;">Skylder på andre for dine egne feil</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">feel anxious or nervous about things in general</td>
-<td style="text-align: left;">Føler deg engstelig eller nervøs for ting generelt</td>
-<td style="text-align: left;">Føler deg engstelig eller nervøs generelt</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">worry about doing better at things</td>
-<td style="text-align: left;">Bekymrer deg for å prestere bedre i ting</td>
-<td style="text-align: left;">Bekymrer deg for å prestere bedre</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">worry about doing the wrong thing</td>
-<td style="text-align: left;">Bekymrer deg for å gjøre feil ting</td>
-<td style="text-align: left;">Bekymrer deg for å gjøre noe galt</td>
+<td style="text-align: left;">are resentful or feel spiteful</td>
+<td style="text-align: left;">Er bitter eller føler deg hevngjerrig</td>
+<td style="text-align: left;">Er bitter eller føler deg ondskapsfull</td>
 </tr>
 </tbody>
 </table>
@@ -2392,6 +2412,11 @@ Processed batch 4 of 4 </code></pre>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  ) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] &quot;### Guideline for translation:&quot;
+
+      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
+      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
+      &quot;Translate questions as questions, and statements as statements.&quot;,
+      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
 NULL</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>translated_scales <span class="ot">=</span></span>
@@ -2402,6 +2427,11 @@ NULL</code></pre>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] &quot;### Guideline for translation:&quot;
+
+      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
+      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
+      &quot;Translate questions as questions, and statements as statements.&quot;,
+      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
 NULL</code></pre>
 </div>
 </div>
@@ -2422,11 +2452,11 @@ NULL</code></pre>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(flextable)</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(officer)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>ft <span class="ot">&lt;-</span> <span class="fu">flextable</span>(translated_items_b) <span class="sc">%&gt;%</span> </span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;original_item&quot;</span>,     <span class="at">width =</span> <span class="fl">2.75</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;translated_item&quot;</span>, <span class="at">width =</span> <span class="fl">2.75</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>ft <span class="ot">&lt;-</span> <span class="fu">flextable</span>(translated_items_b) <span class="sc">|&gt;</span> </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;original_item&quot;</span>,     <span class="at">width =</span> <span class="fl">2.75</span>) <span class="sc">|&gt;</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;translated_item&quot;</span>, <span class="at">width =</span> <span class="fl">2.75</span>) <span class="sc">|&gt;</span></span>
 <span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_table_properties</span>(<span class="at">layout =</span> <span class="st">&quot;fixed&quot;</span>, <span class="at">width =</span> <span class="dv">1</span>)</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>doc <span class="ot">&lt;-</span> <span class="fu">read_docx</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>doc <span class="ot">&lt;-</span> <span class="fu">read_docx</span>() <span class="sc">|&gt;</span></span>
 <span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">body_add_flextable</span>(ft)</span>
 <span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(doc, <span class="at">target =</span> <span class="fu">here</span>(<span class="st">&quot;translated_items.docx&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>

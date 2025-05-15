@@ -45,8 +45,7 @@ llm_translate = function(source_file, example_file ,
   bp = base_prompt(source_language = source_language, target_language = target_language, domain = domain, guidelines = guidelines)
 
   EXAMPLES =
-    example_translations(example_file, type = example_type) %>%
-    dt_to_json()
+    dt_to_json(example_translations(example_file, type = example_type))
 
   items_engl = readLines(source_file)
 
@@ -59,8 +58,9 @@ llm_translate = function(source_file, example_file ,
     translated_items = chat$chat(prompt)
 
     out =
-      jsonlite::fromJSON(gsub("```json|```","",translated_items )) %>%
-      data.table::data.table()
+      data.table::data.table(
+        jsonlite::fromJSON(gsub("```json|```","",translated_items ))
+      )
   } else {
 
     num_batches <- ceiling(length(items_engl) / batch_size)
@@ -74,13 +74,14 @@ llm_translate = function(source_file, example_file ,
 
       prompt <- glue::glue(bp)
 
-      if (is.null(chat)) {
-        chat = .get_chat()
-      }
+      if (is.null(chat)) chat <- .get_chat()
+
       translated_items <- chat$chat(prompt)
 
-      batch_results <- jsonlite::fromJSON(gsub("```json|```", "", translated_items)) %>%
-        data.table::data.table()
+      batch_results <-
+        data.table::data.table(
+          jsonlite::fromJSON(gsub("```json|```", "", translated_items))
+        )
       out <- rbind(out, batch_results)
 
       # Optional: Add a small delay between batches to avoid rate limiting
