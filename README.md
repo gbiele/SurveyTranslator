@@ -1,4 +1,6 @@
-SurveyTranslator is a barbones package to translate surveys with LLMs by using tailored instructions and example translations.
+**SurveyTranslator** is a barbones R-package to translate surveys with LLMs by using tailored instructions and example translations.
+
+An **introductory vignette** is [here](https://htmlpreview.github.io/?https://github.com/gbiele/SurveyTranslator/blob/master/vignettes/Introduction.html).
 
 To use the package, one needs an API key for either google gemini, openai, or anthropic (claude).
 
