@@ -142,7 +142,7 @@ print(doc, target = here("translated_items.docx"))
 
 ## Summary
 
-The `{surveytranslate}` package simplifies high-quality questionnaire translation using LLMs by leveraging:
+The `{SurveyTranslator}` package simplifies questionnaire translation using LLMs by using:
 
 -   Domain-specific prompting
 -   Example-based learning
@@ -150,4 +150,3 @@ The `{surveytranslate}` package simplifies high-quality questionnaire translatio
 -   Batch processing
 -   Support for multiple language model providers
 
-This tool helps researchers ensure conceptual equivalence and cultural appropriateness of translated mental health instruments, particularly in adolescent populations.
