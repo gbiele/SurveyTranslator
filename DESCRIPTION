@@ -22,3 +22,5 @@ Imports:
   ellmer,
   jsonlite,
   glue
+URL: https://github.com/gbiele/SurveyTranslator
+BugReports: https://github.com/gbiele/SurveyTranslator/issues
