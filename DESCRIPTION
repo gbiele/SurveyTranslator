@@ -1,6 +1,6 @@
 Package: SurveyTranslator
 Type: Package
-Title: Translate instructions, items and scales from youth mental health instruments
+Title: LLM-Powered (Mental Health) Survey Translation
 Version: 0.1.0
 Authors@R: c(
     person(
@@ -9,8 +9,7 @@ Authors@R: c(
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
+Description: Batch translation of survey items, instructions, and response options via LLMs, with customizable guidelines for conceptual and cultural appropriateness.
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
@@ -22,5 +21,8 @@ Imports:
   ellmer,
   jsonlite,
   glue
+Suggests:
+  quarto
 URL: https://github.com/gbiele/SurveyTranslator
 BugReports: https://github.com/gbiele/SurveyTranslator/issues
+VignetteBuilder: quarto
