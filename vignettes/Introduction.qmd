@@ -52,7 +52,9 @@ translated_items =
 ```
 
 ```{r}
-head(translated_items) %>% knitr::kable()
+ knitr::kable(
+   head(translated_items)
+   )
 ```
 
 ## Using Custom Guidelines
@@ -85,12 +87,12 @@ Compare translations:
 different_translations =
   which(translated_items[, translated_item] != translated_items_b[, translated_item])
 
-cbind(
+comp = 
+  cbind(
   translated_items[different_translations],
   translated_items_b[different_translations, translated_item]
-) %>% 
-  head() %>% 
-  knitr::kable()
+)
+knitr::kable(head(comp))
 ```
 
 ## Translating Instructions and Scales
@@ -131,11 +133,11 @@ To save the table to a Word document, use `flextable`:
 library(flextable)
 library(officer)
 
-ft <- flextable(translated_items_b) %>% 
-  width(j = "original_item",     width = 2.75) %>%
-  width(j = "translated_item", width = 2.75) %>%
+ft <- flextable(translated_items_b) |> 
+  width(j = "original_item",     width = 2.75) |>
+  width(j = "translated_item", width = 2.75) |>
   set_table_properties(layout = "fixed", width = 1)
-doc <- read_docx() %>%
+doc <- read_docx() |>
   body_add_flextable(ft)
 print(doc, target = here("translated_items.docx"))
 ```

@@ -30,7 +30,7 @@ base_prompt = function(source_language = NULL, target_language = NULL, domain = 
 
 
   if (is.null(guidelines)){
-    guidlines = default_guidelines
+    guidelines = default_guidelines
   } else {
     guidelines = paste0(default_guidelines,"\n",guidelines)
   }
