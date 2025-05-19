@@ -7,8 +7,11 @@
 base_prompt(
   source_language = NULL,
   target_language = NULL,
+  guidelines = NULL,
   domain = NULL,
-  guidelines = NULL
+  topic = NULL,
+  instructions = NULL,
+  responses = NULL
 )
 }
 \arguments{
@@ -16,10 +19,10 @@ base_prompt(
 
 \item{target_language}{Character. Target language (e.g., `"Norwegian"`).}
 
-\item{domain}{Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.}
-
 \item{guidelines}{Character vector or string. Optional additional translation guidelines. If `NULL`, a default set of instructions is used.
 If a custom value is provided, it is appended to the defaults.}
+
+\item{domain}{Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.}
 }
 \value{
 A character string containing a complete JSON prompt with placeholders `{EXAMPLES}` and `{ITEMS}` to be filled in later.

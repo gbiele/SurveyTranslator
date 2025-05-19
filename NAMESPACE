@@ -3,7 +3,7 @@
 export(base_prompt)
 export(dt_to_json)
 export(example_translations)
-export(llm_translate)
+export(translate_survey)
 importFrom(data.table,as.data.table)
 importFrom(data.table,data.table)
 importFrom(data.table,is.data.table)

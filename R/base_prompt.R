@@ -18,11 +18,13 @@
 #'
 #' @keywords internal
 #' @export
-base_prompt = function(source_language = NULL, target_language = NULL, domain = NULL, guidelines = NULL)  {
+base_prompt = function(source_language = NULL, target_language = NULL, guidelines = NULL,
+                       domain = NULL, topic = NULL, instructions = NULL, responses = NULL)  {
 
   default_guidelines =
 '
       "Ensure each item is translated accurately and retains its original meaning.",
+      "When an item topic, instructions, or response options are given, translate these first."
       "Maintain consistency in terminology and phrasing across all items.",
       "Translate questions as questions, and statements as statements.",
       "If an item contains a placeholder like \'[Variable]\', keep the placeholder as is."
@@ -35,26 +37,26 @@ base_prompt = function(source_language = NULL, target_language = NULL, domain = 
     guidelines = paste0(default_guidelines,"\n",guidelines)
   }
 
-  print("### Guideline for translation:")
-  print(cat(guidelines))
-
   out = paste0(
 '
 {{
   "task": "Translate a questionnaire",
   "instructions": {{
-    "role": "You are an expert translator specializing in questionnaires and surveys for mental health and related fields.",
-    "source_language": "', source_language, '",
-    "target_language": "', target_language, '",
-    "tone": "neutral and clear",
-    "domain": "', domain, '",
-    "guidelines": [',guidelines ,'],
-    "output_format_instruction": "Your output should be a list of objects,
+    "Role": "You are an expert translator specializing in questionnaires and surveys for mental health and related fields.",
+    "Source language": "', source_language, '",
+    "Target language": "', target_language, '",
+    "Tone": "neutral and clear",
+    "Domain": "', domain, '",
+    ',ifelse(!is.null(topic),paste0("Item-topic: ", topic,","),""),'
+    ',ifelse(!is.null(instructions),paste0("Instructions: ", instructions,","),""),'
+    ',ifelse(!is.null(responses),paste0("Response options: ", responses,","),""),'
+    "Guidelines": [',guidelines ,'],
+    "Output format instruction": "Your output should be a list of objects,
     where each object contains two keys: \'original_item\' holding the English text,
     and \'translated_item\' holding the Norwegian translation. Mirror the structure shown in the \'examples\'."
   }},
   "examples": {EXAMPLES},
-  "items_to_translate": [
+  "Items to translate": [
     {ITEMS}
   ]
 }}
