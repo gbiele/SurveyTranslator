@@ -32,7 +32,7 @@
 #' @importFrom jsonlite toJSON fromJSON
 #'
 #' @export
-eval_translations <- function(translated_items, back_translated_items, chat, api_key = NULL, llm_model = NULL) {
+eval_translations <- function(translated_items, back_translated_items, chat = NULL, api_key = NULL, llm_model = NULL) {
   # --- Input Validation ---
   if (!inherits(translated_items, "data.frame")) {
     stop("`translated_items` must be a data.frame or data.table.")
@@ -79,7 +79,7 @@ eval_translations <- function(translated_items, back_translated_items, chat, api
   clean_response_json <- gsub("```json|```", "", eval_response)
 
   parsed_response <- tryCatch({
-    jsonlite::fromJSON(clean_response_json)
+    data.table::data.table(jsonlite::fromJSON(clean_response_json))
   }, error = function(e) {
     warning("Failed to parse LLM's JSON response: ", e$message)
     warning("Raw LLM response was:\n", eval_response)

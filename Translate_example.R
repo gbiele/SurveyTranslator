@@ -29,16 +29,5 @@ back_translated_items =
                  target_language = "English",
                  sleep = 1, llm_model = m, api_key = NULL)
 
-round_trip = data.table(
-  original = translated_items$Text,
-  translation = translated_items$translated_item,
-  back_translation = back_translated_items$translated_item
-)
 
-
-round_trip_json = toJSON(round_trip, pretty = TRUE)
-
-p2 = prompt_back_trans(round_trip_json)
-
-eval = chat$chat(p2)
-parsed_response = jsonlite::fromJSON(gsub("```json|```", "", eval))
+evaluation = eval_translations(translated_items, back_translated_items)

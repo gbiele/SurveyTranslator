@@ -87,7 +87,7 @@ prompt_back_trans = function(JSON_DATA) {
       "parts": [
         {
           "text": "You are an expert linguistic evaluator specializing in survey translation quality.
-          Your task is to evaluate the semantic equivalence between original survey statements and their back-translated versions.
+          Your task is to evaluate the semantic and tonal equivalence between original survey statements and their back-translated versions.
 
           You will receive a JSON array, where each object contains an \'original\' statement, its \'translation\', and its \'back_translation\'.
 

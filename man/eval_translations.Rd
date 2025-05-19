@@ -7,7 +7,7 @@
 eval_translations(
   translated_items,
   back_translated_items,
-  chat,
+  chat = NULL,
   api_key = NULL,
   llm_model = NULL
 )
