@@ -8,6 +8,7 @@
   bp,
   items_to_translate,
   batch_vars,
+  get_instr,
   source_language,
   target_language,
   guidelines,

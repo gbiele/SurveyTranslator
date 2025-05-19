@@ -5,8 +5,9 @@
 \title{Translate survey items using a language model}
 \usage{
 translate_survey(
-  source_file,
+  source_items,
   example_file,
+  rev_ex = FALSE,
   source_language = "English",
   target_language = "Norwegian",
   domain = "Youth mental health",
@@ -14,6 +15,7 @@ translate_survey(
   example_type = "Item",
   chat = NULL,
   batch_size = NULL,
+  get_instr = TRUE,
   batch_vars = c("Instrument", "Topic"),
   api_key = NULL,
   sleep = 7,
@@ -21,10 +23,12 @@ translate_survey(
 )
 }
 \arguments{
-\item{source_file}{Character. Path to a text file containing survey items
+\item{source_items}{A Character, path to a file containing survey items, or a data.table
 (one item per line) to be translated.}
 
 \item{example_file}{Character. Path to an Excel file containing example translations.}
+
+\item{rev_ex}{An optional logical determining if source and target language are swapped.}
 
 \item{source_language}{Character. Source language used in the survey items. Default is `"English"`.}
 

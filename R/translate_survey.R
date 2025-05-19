@@ -7,9 +7,10 @@
 #' batching for large item sets and automatic model selection if no chat object
 #' is provided.
 #'
-#' @param source_file Character. Path to a text file containing survey items
+#' @param source_items A Character, path to a file containing survey items, or a data.table
 #' (one item per line) to be translated.
 #' @param example_file Character. Path to an Excel file containing example translations.
+#' @param rev_ex An optional logical determining if source and target language are swapped.
 #' @param source_language Character. Source language used in the survey items. Default is `"English"`.
 #' @param target_language Character. Target language for the translations. Default is `"Norwegian"`.
 #' @param domain Character. Domain context for the prompt. Helps tailor the tone
@@ -58,11 +59,11 @@
 #' }
 #'
 #' @export
-translate_survey = function(source_file, example_file,
+translate_survey = function(source_items, example_file,rev_ex = FALSE,
                             source_language = "English", target_language = "Norwegian",
                             domain = "Youth mental health", guidelines = NULL,
                             example_type = "Item", chat = NULL, batch_size = NULL,
-                            batch_vars = c("Instrument","Topic"),
+                            get_instr = TRUE, batch_vars = c("Instrument","Topic"),
                             api_key = NULL, sleep = 7, llm_model = NULL) {
 
   if (all(!c(is.null(batch_vars),is.null(batch_size))) == TRUE)
@@ -78,10 +79,14 @@ translate_survey = function(source_file, example_file,
 
   # Load and format example translations
   EXAMPLES =
-    dt_to_json(example_translations(example_file, type = example_type))
+    dt_to_json(example_translations(example_file, rev_ex = rev_ex))
 
   # Read survey items from the source file
-  items_to_translate = data.table(read_xlsx(source_file))
+  if (is.character(source_items)) {
+    items_to_translate = data.table(read_xlsx(source_items))
+  } else {
+    items_to_translate = source_items
+  }
 
 
   if (is.null(chat)) chat = .get_chat(model = llm_model, api_key = api_key)
@@ -97,7 +102,7 @@ translate_survey = function(source_file, example_file,
   } else if (!is.null(batch_size)) {
     out = .batch_by_size(bp,items_to_translate, batch_size, chat, sleep)
   } else if (!is.null(batch_vars)) {
-    out = .batch_by_vars(bp,items_to_translate,batch_vars, source_language, target_language, guidelines, domain, EXAMPLES, chat, sleep)
+    out = .batch_by_vars(bp, items_to_translate, batch_vars, get_instr, source_language, target_language, guidelines, domain, EXAMPLES, chat, sleep)
   }
   return(out)
 }
@@ -211,7 +216,7 @@ translate_survey = function(source_file, example_file,
 #' combined with the original batch items and a `batch_idx` column.
 #'
 #' @keywords internal
-.batch_by_vars = function(bp,items_to_translate,batch_vars, source_language, target_language, guidelines, domain, EXAMPLES, chat, sleep) {
+.batch_by_vars = function(bp, items_to_translate, batch_vars, get_instr, source_language, target_language, guidelines, domain, EXAMPLES, chat, sleep) {
   # expecting columns "Text" "Instrument","Topic","Instruction","Response" in items_to_translate
   batches =
     items_to_translate[
@@ -229,18 +234,24 @@ translate_survey = function(source_file, example_file,
       domain = domain,
       guidelines = guidelines
     )
-    batch_items_to_translate =
-      merge(batches[batch_idx], items_to_translate,
-            by = batch_vars)[,.(Instrument,Topic,Type,Text,Instruction,Response)]
 
-    Instructions = items_to_translate[Instruction == batch_items_to_translate[1,Instruction] & Type == "Instr", Text]
-    Response_opts = items_to_translate[Response == batch_items_to_translate[1,Response] & Type == "RT", Text]
+    if (get_instr == TRUE) {
+      batch_items_to_translate =
+        merge(batches[batch_idx], items_to_translate,
+              by = batch_vars)[,.(Instrument,Topic,Type,Text, Instruction, Response)]
 
-    if (length(Response_opts) > 0)
-      batch_items_to_translate = rbind(batch_items_to_translate[1][, `:=`(Text = Response_opts, Type = "RT")],batch_items_to_translate)
-    if (length(Instructions) > 0)
-      batch_items_to_translate = rbind(batch_items_to_translate[1][, `:=`(Text = Instructions, Type = "Instr")],batch_items_to_translate)
+      Instructions = items_to_translate[Instruction == batch_items_to_translate[1,Instruction] & Type == "Instr", Text]
+      Response_opts = items_to_translate[Response == batch_items_to_translate[1,Response] & Type == "RT", Text]
 
+      if (length(Response_opts) > 0)
+        batch_items_to_translate = rbind(batch_items_to_translate[1][, `:=`(Text = Response_opts, Type = "RT")],batch_items_to_translate)
+      if (length(Instructions) > 0)
+        batch_items_to_translate = rbind(batch_items_to_translate[1][, `:=`(Text = Instructions, Type = "Instr")],batch_items_to_translate)
+    } else {
+      batch_items_to_translate =
+        merge(batches[batch_idx], items_to_translate,
+              by = batch_vars)[,.(Instrument,Topic,Type,Text)]
+    }
 
     ITEMS <- paste0('"', paste(batch_items_to_translate$Text, collapse = '",\n "'), '"')
     current_prompt <- glue::glue(bp) # EXAMPLES and ITEMS are used by glue via bp

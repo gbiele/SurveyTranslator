@@ -4,7 +4,7 @@
 \alias{example_translations}
 \title{Get Example Translations from an Excel File}
 \usage{
-example_translations(file_path, type = "Item", instrument = NULL)
+example_translations(file_path, instrument = NULL, rev_ex = FALSE)
 }
 \arguments{
 \item{file_path}{A single string. The full path to the Excel file (.xlsx or .xls).
@@ -21,7 +21,6 @@ example_translations(file_path, type = "Item", instrument = NULL)
       \itemize{
         \item \code{Type}: A textual column indicating the category or type of the
           translation item (e.g., "Item", "Instruction", "Response Scale").
-          This column is used for filtering via the \code{type} argument of this function.
         \item \code{Instrument}: A textual column identifying the specific survey,
           questionnaire, or document the item belongs to (e.g., "PHQ-9", "General Survey").
           This column is used for filtering via the \code{instrument} argument.
@@ -32,12 +31,11 @@ example_translations(file_path, type = "Item", instrument = NULL)
       }
   }}
 
-\item{type}{Optional. A single string specifying the value in the 'Type' column
-to filter by. Defaults to "Item".}
-
 \item{instrument}{Optional. A single string or \code{NULL}. If a string is provided,
 it specifies the value in the 'Instrument' column to filter by. If \code{NULL} (the default),
-no filtering based on instrument is performed after the initial 'Type' filtering.}
+no filtering based on instrument is performed.}
+
+\item{rev_ex}{An optional logical determining if source and target language are swapped.}
 }
 \value{
 A \code{data.table} containing two columns:
@@ -46,7 +44,6 @@ A \code{data.table} containing two columns:
   \item \code{Target}: The corresponding target language text.
 }
 The table includes rows that match the filtering criteria specified by the
-\code{type} and \code{instrument} arguments.
 }
 \description{
 Extracts example translations from a structured Excel file.

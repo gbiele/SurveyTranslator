@@ -52,8 +52,8 @@ base_prompt = function(source_language = NULL, target_language = NULL, guideline
     ',ifelse(!is.null(responses),paste0("Response options: ", responses,","),""),'
     "Guidelines": [',guidelines ,'],
     "Output format instruction": "Your output should be a list of objects,
-    where each object contains two keys: \'original_item\' holding the English text,
-    and \'translated_item\' holding the Norwegian translation. Mirror the structure shown in the \'examples\'."
+    where each object contains two keys: \'original_item\' holding the original text,
+    and \'translated_item\' holding the translation. Mirror the structure shown in the \'examples\'."
   }},
   "examples": {EXAMPLES},
   "Items to translate": [
@@ -62,4 +62,57 @@ base_prompt = function(source_language = NULL, target_language = NULL, guideline
 }}
 ')
   return(out)
+}
+
+
+#' Prompt back translation
+#'
+#' @description
+#' A short description...
+#'
+#' @param JSON_DATA A single string containing JSON data with the columns
+#' original, translation,  back_translation.
+#'
+#' @returns
+#' A single string representing a prompt structure including the input JSON data.
+#'
+#' @export
+prompt_back_trans = function(JSON_DATA) {
+  prompt =
+  paste('
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {
+          "text": "You are an expert linguistic evaluator specializing in survey translation quality.
+          Your task is to evaluate the semantic equivalence between original survey statements and their back-translated versions.
+
+          You will receive a JSON array, where each object contains an \'original\' statement, its \'translation\', and its \'back_translation\'.
+
+          For each item, perform the following steps:
+            1.  **Compare:** Analyze the \'original\' statement against its \'back_translation\'
+            2.  **Evaluate Meaning:** Determine if their core meanings are identical.
+            3.  **Generate Output:** Create a new JSON array. Each object in this new
+                array should include all original fields (\'original\', \'translation\', \'back_translation\')
+                plus a new field titled \'evaluation\'.
+                The \'evaluation\' field must follow these rules:
+                  * Set to \'OK\' if the meanings of the \'original\' and \'back_translation\' are identical.
+                  * Set to \'deviation:[justification]\' if the meanings are not identical.
+                  The \'[justification]\' must be a concise and clear explanation of the semantic discrepancy.
+                Ensure the final output is a valid JSON array of objects.
+
+                Here is the data you need to process:
+                ',JSON_DATA,'"
+        }
+      ]
+    }
+  ],
+  "generation_config": {
+    "temperature": 0.05,
+    "max_output_tokens": 25000
+  }
+}
+')
 }
