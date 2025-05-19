@@ -7,21 +7,23 @@
 .batch_by_size(bp, items_to_translate, batch_size, chat, sleep)
 }
 \arguments{
-\item{bp}{A string prompt template.}
+\item{bp}{Base prompt template.}
 
-\item{items_to_translate}{A data.table or similar with a column `Text`.}
+\item{items_to_translate}{Data with `Text` column for translation.}
 
-\item{batch_size}{An integer to determine the number of items per batch}
+\item{batch_size}{Number of items per batch.}
 
-\item{sleep}{A numeric value specifying the number of seconds to pause between batches.}
+\item{chat}{An `ellmer` chat object.}
 
-\item{An}{`ellmer` chat object}
+\item{sleep}{Seconds to pause between batches.}
 }
 \value{
-A data.table containing results from batch processing. The function prints
-progress messages and may pause between batches.
+A `data.table` of translation results.
 }
 \description{
-A short description...
+Processes items in batches of fixed size, sending each batch to the LLM via `.translate_llm()`.
 }
+\keyword{batches.}
+\keyword{between}
 \keyword{internal}
+\keyword{pause}

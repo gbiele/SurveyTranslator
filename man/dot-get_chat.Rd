@@ -2,15 +2,20 @@
 % Please edit documentation in R/translate_survey.R
 \name{.get_chat}
 \alias{.get_chat}
-\title{Auto-detect a language model chat backend}
+\title{Auto-detect language model chat backend}
 \usage{
 .get_chat(model = NULL, api_key = NULL)
 }
+\arguments{
+\item{model}{LLM model name. Optional.}
+
+\item{api_key}{Your LLM API key. Optional.}
+}
 \value{
-An `ellmer` chat object suitable for use with `llm_translate()`.
+An `ellmer` chat object.
 }
 \description{
-Returns an appropriate `chat` function from the `ellmer` package based on available environment variables.
-Priority: Google Gemini > OpenAI > Anthropic.
+Auto-detects and returns an `ellmer` chat object based on available
+  API keys (`GOOGLE_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`), prioritizing Google Gemini.
 }
 \keyword{internal}

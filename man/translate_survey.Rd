@@ -23,67 +23,52 @@ translate_survey(
 )
 }
 \arguments{
-\item{source_items}{A Character, path to a file containing survey items, or a data.table
-(one item per line) to be translated.}
+\item{source_items}{Path to file or `data.table` of survey items for translation.}
 
-\item{example_file}{Character. Path to an Excel file containing example translations.}
+\item{example_file}{Path to Excel file with example translations.}
 
-\item{rev_ex}{An optional logical determining if source and target language are swapped.}
+\item{rev_ex}{Logical. If `TRUE`, swaps source/target languages for examples.}
 
-\item{source_language}{Character. Source language used in the survey items. Default is `"English"`.}
+\item{source_language}{Source language. Defaults to 'English'.}
 
-\item{target_language}{Character. Target language for the translations. Default is `"Norwegian"`.}
+\item{target_language}{Target language. Defaults to 'Norwegian'.}
 
-\item{domain}{Character. Domain context for the prompt. Helps tailor the tone
-and terminology. Default is `"Youth mental health"`.}
+\item{domain}{Domain context for translation tone/terminology. Defaults to 'Youth mental health'.}
 
-\item{guidelines}{Character string or vector. Optional custom translation
-guidelines. If `NULL`, a default set of instructions is used.}
+\item{guidelines}{Optional custom translation guidelines (character vector).}
 
-\item{example_type}{Character. Type of examples to extract from the Excel file.
-Passed to `example_translations()`. Default is `"Item"`, can also be
-`"Instructions"` or `"Response options"`.}
+\item{example_type}{Type of examples ('Item', 'Instructions', 'Response options'). Defaults to 'Item'.}
 
-\item{chat}{Optional. An `ellmer` LLM chat object (e.g., from `ellmer::chat_google_gemini()`).
-If `NULL`, an appropriate chat object will be auto-detected via `.get_chat()`
-(e.g. `ellmer::chat_google_gemini(params = list(temperature = .05))` if
-`GOOGLE_API_KEY` is found).}
+\item{chat}{`ellmer` chat object. If `NULL`, auto-detected by `.get_chat()`.}
 
-\item{batch_size}{Optional integer. If provided, items are translated in
-batches of this size. If `NULL`, all items are translated in a single request.}
+\item{batch_size}{Integer. Batch size for translation. `NULL` for single request.}
+
+\item{get_instr}{Logical. If `TRUE`, incorporates instructions/response options into batches.}
+
+\item{batch_vars}{Character vector. Variables to group items for batching via `.batch_by_vars()`.}
+
+\item{api_key}{Your LLM API key. Passed to `.get_chat()` if `chat` is `NULL`.}
+
+\item{sleep}{Numeric. Seconds to pause between batches.}
+
+\item{llm_model}{LLM model name. Passed to `.get_chat()` if `chat` is `NULL`.}
 }
 \value{
 A `data.table` containing the translated survey items.
 }
 \description{
-Prepares prompts and manages the translation of survey items from a plain
-text file, either in a single request or in batches. Uses `.translate_llm()`
-for actual LLM interaction. Translation is guided by example translations
-extracted from an Excel file and shaped by a customizable prompt.Supports
-batching for large item sets and automatic model selection if no chat object
-is provided.
+Translates survey items (from file or `data.table`) to a target language.
+  Manages prompts, example translations, and batching. Leverages `.translate_llm()`
+  for LLM interaction and `.get_chat()` for LLM client auto-detection.
 }
 \details{
-The function constructs a structured prompt using `base_prompt()`, filling in
-language, domain, and guideline parameters, #' along with example translations
-(via `example_translations()`) and target items.
-
-If no `chat` object is supplied, the function auto-detects the available backend by checking for API keys in `.Renviron`
-in the following order (this logic should be implemented in a helper like `.get_chat()`):
-1. Google Gemini (`GOOGLE_API_KEY`)
-2. OpenAI (`OPENAI_API_KEY`)
-3. Anthropic (`ANTHROPIC_API_KEY`)
-
-At least one of these keys must be set in your environment for auto-detection.
-
-Example translations are serialized to JSON using `dt_to_json()` and included in the prompt under the `examples` field.
-The expected model output (handled by `.translate_llm`) is a JSON list of objects, each containing `original_item` and `translated_item`.
+Uses `base_prompt()` to construct LLM prompts, `example_translations()` for examples,
+  and `dt_to_json()` for serialization. Batching is handled by `.batch_by_size()` or `.batch_by_vars()`.
+  Relies on `.get_chat()` for LLM client setup. Expected LLM output is JSON with
+  `original_item` and `translated_item`.
 }
 \examples{
 \dontrun{
-# Assuming base_prompt, example_translations, dt_to_json, and .get_chat are defined
-# and API keys are set up.
-
 # Example: Translate all items at once
 # translated_data_single <- translate_survey("data/items.txt", "data/examples.xlsx")
 

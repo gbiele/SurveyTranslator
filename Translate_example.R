@@ -31,3 +31,4 @@ back_translated_items =
 
 
 evaluation = eval_translations(translated_items, back_translated_items)
+evaluation[evaluation != "OK"]

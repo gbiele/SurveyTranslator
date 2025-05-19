@@ -13,36 +13,28 @@ eval_translations(
 )
 }
 \arguments{
-\item{translated_items}{A `data.table` (or `data.frame`) containing the original
-survey items and their initial translations. It is expected to have a column
-named 'Text' (for original items) and 'translated_item' (for the first translation).}
+\item{translated_items}{A `data.table` or `data.frame` with original ('Text')
+and translated ('translated_item') survey texts.}
 
-\item{back_translated_items}{A `data.table` (or `data.frame`) containing the
-back-translated survey items. It is expected to have a column named
-'translated_item' (for the back-translated items).}
+\item{back_translated_items}{A `data.table` or `data.frame` with back-translated
+texts ('translated_item').}
 
-\item{prompt_generator_fn}{A function that takes a JSON string of the round-trip
-data and generates an LLM-specific prompt object suitable for your `chat_client`.
-This would typically be your custom `prompt_back_trans` function.}
+\item{chat}{LLM chat client object. If `NULL`, initialized using `llm_model` and `api_key`.}
 
-\item{chat_client}{An object representing the LLM client (e.g., a configured
-`gemini` client object) that has a `$chat()` method. This method should
-accept the output of `prompt_generator_fn` and return the LLM's raw response.}
+\item{api_key}{Your LLM API key. Required if `chat` is `NULL`.}
+
+\item{llm_model}{The LLM model name.}
 }
 \value{
-A list or data.frame resulting from parsing the LLM's JSON response,
-  which should contain the evaluation of the translation roundtrip for each item.
-  Returns `NULL` invisibly if any required input columns are missing or if
-  JSON parsing fails.
+A `data.table` of evaluation results from the LLM, or `NULL` on error.
 }
 \description{
-This function orchestrates the process of creating a "round trip"
-  translation data structure, converting it to JSON, generating an LLM prompt,
-  sending the prompt to a large language model (e.g., Gemini), and parsing
-  the LLM's JSON response to evaluate translation equivalence.
+Evaluates translation and back-translation equivalence (semantic and tonal) using an LLM.
+  Handles data preparation, prompt generation, API call, and response parsing.
 }
 \details{
-It's important that `translated_items` and `back_translated_items` are aligned
-  row-wise such that `translated_items$Text[i]` corresponds to `translated_items$translated_item[i]`
-  which in turn corresponds to `back_translated_items$translated_item[i]`.
+Requires `data.table` and `jsonlite`. Assumes `translated_items` and
+  `back_translated_items` are row-aligned. Assumes `prompt_back_trans()` is
+  defined and correctly generates an LLM prompt from the round-trip JSON data.
+  The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
 }

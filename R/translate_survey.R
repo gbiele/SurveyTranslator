@@ -1,55 +1,34 @@
-#' Translate survey items using a language model
+#' @title Translate survey items using a language model
 #'
-#' Prepares prompts and manages the translation of survey items from a plain
-#' text file, either in a single request or in batches. Uses `.translate_llm()`
-#' for actual LLM interaction. Translation is guided by example translations
-#' extracted from an Excel file and shaped by a customizable prompt.Supports
-#' batching for large item sets and automatic model selection if no chat object
-#' is provided.
+#' @description Translates survey items (from file or `data.table`) to a target language.
+#'   Manages prompts, example translations, and batching. Leverages `.translate_llm()`
+#'   for LLM interaction and `.get_chat()` for LLM client auto-detection.
 #'
-#' @param source_items A Character, path to a file containing survey items, or a data.table
-#' (one item per line) to be translated.
-#' @param example_file Character. Path to an Excel file containing example translations.
-#' @param rev_ex An optional logical determining if source and target language are swapped.
-#' @param source_language Character. Source language used in the survey items. Default is `"English"`.
-#' @param target_language Character. Target language for the translations. Default is `"Norwegian"`.
-#' @param domain Character. Domain context for the prompt. Helps tailor the tone
-#' and terminology. Default is `"Youth mental health"`.
-#' @param guidelines Character string or vector. Optional custom translation
-#' guidelines. If `NULL`, a default set of instructions is used.
-#' @param example_type Character. Type of examples to extract from the Excel file.
-#' Passed to `example_translations()`. Default is `"Item"`, can also be
-#' `"Instructions"` or `"Response options"`.
-#' @param chat Optional. An `ellmer` LLM chat object (e.g., from `ellmer::chat_google_gemini()`).
-#' If `NULL`, an appropriate chat object will be auto-detected via `.get_chat()`
-#' (e.g. `ellmer::chat_google_gemini(params = list(temperature = .05))` if
-#' `GOOGLE_API_KEY` is found).
-#' @param batch_size Optional integer. If provided, items are translated in
-#' batches of this size. If `NULL`, all items are translated in a single request.
+#' @param source_items Path to file or `data.table` of survey items for translation.
+#' @param example_file Path to Excel file with example translations.
+#' @param rev_ex Logical. If `TRUE`, swaps source/target languages for examples.
+#' @param source_language Source language. Defaults to 'English'.
+#' @param target_language Target language. Defaults to 'Norwegian'.
+#' @param domain Domain context for translation tone/terminology. Defaults to 'Youth mental health'.
+#' @param guidelines Optional custom translation guidelines (character vector).
+#' @param example_type Type of examples ('Item', 'Instructions', 'Response options'). Defaults to 'Item'.
+#' @param chat `ellmer` chat object. If `NULL`, auto-detected by `.get_chat()`.
+#' @param batch_size Integer. Batch size for translation. `NULL` for single request.
+#' @param get_instr Logical. If `TRUE`, incorporates instructions/response options into batches.
+#' @param batch_vars Character vector. Variables to group items for batching via `.batch_by_vars()`.
+#' @param api_key Your LLM API key. Passed to `.get_chat()` if `chat` is `NULL`.
+#' @param sleep Numeric. Seconds to pause between batches.
+#' @param llm_model LLM model name. Passed to `.get_chat()` if `chat` is `NULL`.
 #'
 #' @return A `data.table` containing the translated survey items.
 #'
-#' @details
-#' The function constructs a structured prompt using `base_prompt()`, filling in
-#' language, domain, and guideline parameters, #' along with example translations
-#' (via `example_translations()`) and target items.
-#'
-#' If no `chat` object is supplied, the function auto-detects the available backend by checking for API keys in `.Renviron`
-#' in the following order (this logic should be implemented in a helper like `.get_chat()`):
-#' 1. Google Gemini (`GOOGLE_API_KEY`)
-#' 2. OpenAI (`OPENAI_API_KEY`)
-#' 3. Anthropic (`ANTHROPIC_API_KEY`)
-#'
-#' At least one of these keys must be set in your environment for auto-detection.
-#'
-#' Example translations are serialized to JSON using `dt_to_json()` and included in the prompt under the `examples` field.
-#' The expected model output (handled by `.translate_llm`) is a JSON list of objects, each containing `original_item` and `translated_item`.
+#' @details Uses `base_prompt()` to construct LLM prompts, `example_translations()` for examples,
+#'   and `dt_to_json()` for serialization. Batching is handled by `.batch_by_size()` or `.batch_by_vars()`.
+#'   Relies on `.get_chat()` for LLM client setup. Expected LLM output is JSON with
+#'   `original_item` and `translated_item`.
 #'
 #' @examples
 #' \dontrun{
-#' # Assuming base_prompt, example_translations, dt_to_json, and .get_chat are defined
-#' # and API keys are set up.
-#'
 #' # Example: Translate all items at once
 #' # translated_data_single <- translate_survey("data/items.txt", "data/examples.xlsx")
 #'
@@ -58,6 +37,8 @@
 #' #                                          batch_size = 10, target_language = "Spanish")
 #' }
 #'
+#' @importFrom data.table data.table
+#' @importFrom jsonlite toJSON
 #' @export
 translate_survey = function(source_items, example_file,rev_ex = FALSE,
                             source_language = "English", target_language = "Norwegian",
@@ -107,14 +88,18 @@ translate_survey = function(source_items, example_file,rev_ex = FALSE,
   return(out)
 }
 
-#' Submit a prepared prompt to the LLM and parse the response
+#' @title Submit prepared prompt to LLM and parse response
 #'
-#' @param prompt Character. The complete prompt string to send to the LLM.
-#' @param chat An `ellmer` LLM chat object (e.g., from `ellmer::chat_google_gemini()`).
+#' @description Submits a prompt to the LLM via `chat` object and parses its JSON response.
+#'
+#' @param prompt The LLM prompt string.
+#' @param chat An `ellmer` chat object.
 #'
 #' @return A `data.table` containing `original_item` and `translated_item` pairs
-#'         extracted from the LLM's JSON response.
+#'   extracted from the LLM's JSON response.
 #'
+#' @importFrom jsonlite fromJSON
+#' @importFrom data.table data.table
 #' @noRd
 .translate_llm = function(prompt, chat) {
   # Submit the prompt to the LLM
@@ -128,12 +113,15 @@ translate_survey = function(source_items, example_file,rev_ex = FALSE,
   return(out)
 }
 
-#' Auto-detect a language model chat backend
+#' @title Auto-detect language model chat backend
 #'
-#' Returns an appropriate `chat` function from the `ellmer` package based on available environment variables.
-#' Priority: Google Gemini > OpenAI > Anthropic.
+#' @description Auto-detects and returns an `ellmer` chat object based on available
+#'   API keys (`GOOGLE_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`), prioritizing Google Gemini.
 #'
-#' @return An `ellmer` chat object suitable for use with `llm_translate()`.
+#' @param model LLM model name. Optional.
+#' @param api_key Your LLM API key. Optional.
+#'
+#' @return An `ellmer` chat object.
 #' @keywords internal
 .get_chat = function(model = NULL, api_key = NULL) {
   if (Sys.getenv("GOOGLE_API_KEY") != "") {
@@ -149,20 +137,19 @@ translate_survey = function(source_items, example_file,rev_ex = FALSE,
 
 
 
-#' Batch by size
+#' @title Batch by size
 #'
-#' @description
-#' A short description...
+#' @description Processes items in batches of fixed size, sending each batch to the LLM via `.translate_llm()`.
 #'
-#' @param bp A string prompt template.
-#' @param items_to_translate A data.table or similar with a column `Text`.
-#' @param batch_size An integer to determine the number of items per batch
-#' @param An `ellmer` chat object
-#' @param sleep A numeric value specifying the number of seconds to pause between batches.
+#' @param bp Base prompt template.
+#' @param items_to_translate Data with `Text` column for translation.
+#' @param batch_size Number of items per batch.
+#' @param chat An `ellmer` chat object.
+#' @param sleep Seconds to pause between batches.
 #'
-#' @returns
-#' A data.table containing results from batch processing. The function prints
-#' progress messages and may pause between batches.
+#' @return A `data.table` of translation results.
+#' @importFrom data.table data.table
+#' @keywords internal pause between batches.
 #' @keywords internal
 .batch_by_size = function(bp,items_to_translate,batch_size,chat,sleep) {
   items_to_translate = items_to_translate[,Text]
@@ -193,28 +180,24 @@ translate_survey = function(source_items, example_file,rev_ex = FALSE,
   return(out)
 }
 
-#' Batch items by variables
+#' @title Batch items by variables
 #'
-#' @description
-#' A short description...
+#' @description Groups and processes items by specified variables, sending each batch to the LLM via `.translate_llm()`.
 #'
-#' @param bp A base prompt.
-#' @param items_to_translate A data.table containing items to translate,
-#' expected to have columns "Text", "Instrument", "Topic", "Instruction", and "Response",
-#' and also columns specified by `batch_vars` used in the `by` argument of `data.table::data.table()`.
-#' @param batch_vars A character vector with variable names that determine groups for
-#' batch processing,
-#' @param source_language Character. Source language used in the survey items. Default is `"English"`.
-#' @param target_language Character. Target language for the translations. Default is `"Norwegian"`.
-#' @param guidelines Character string or vector. Optional custom translation
-#' @param domain Character. Domain context for the prompt. Helps tailor the tone
-#' @param An `ellmer` chat object
-#' @param sleep A numeric value specifying the number of seconds to pause between batches.
+#' @param bp Base prompt template.
+#' @param items_to_translate `data.table` with items, `Text` and `batch_vars` columns.
+#' @param batch_vars Variables for grouping items into batches.
+#' @param get_instr Logical. If `TRUE`, incorporates instructions/response options.
+#' @param source_language Source language.
+#' @param target_language Target language.
+#' @param guidelines Optional custom translation guidelines.
+#' @param domain Domain context.
+#' @param EXAMPLES JSON string of example translations.
+#' @param chat An `ellmer` chat object.
+#' @param sleep Seconds to pause between batches.
 #'
-#' @returns
-#' A data.table containing the translation results (`batch_results` from `.translate_llm`),
-#' combined with the original batch items and a `batch_idx` column.
-#'
+#' @return A `data.table` of translation results with original items and batch index.
+#' @importFrom data.table data.table
 #' @keywords internal
 .batch_by_vars = function(bp, items_to_translate, batch_vars, get_instr, source_language, target_language, guidelines, domain, EXAMPLES, chat, sleep) {
   # expecting columns "Text" "Instrument","Topic","Instruction","Response" in items_to_translate
