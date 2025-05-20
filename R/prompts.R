@@ -95,18 +95,15 @@ prompt_evaluation = function(JSON_DATA, guidelines = default_backtrans_guideline
                   The \'[justification]\' must be a concise and clear explanation of the semantic discrepancy.
                 Ensure the final output is a valid JSON array of objects.
 
-                Here is the data you need to process:
+                Here is the JSON data you need to process, which will follow this introductory text:
                 ',JSON_DATA,'"
         }
       ]
     }
-  ],
-  "generation_config": {
-    "temperature": 0.05,
-    "max_output_tokens": 25000
-  }
+  ]
 }
 ')
+  return(prompt)
 }
 
 

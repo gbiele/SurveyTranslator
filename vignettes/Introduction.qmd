@@ -34,7 +34,7 @@ This vignette walks through a complete translation workflow:
 2. Setting up translation context with examples
 3. Translation using LLMs
 4. Performing back-translation to check fidelity
-5. Evaluating the semantic equivalence of translations using LLMs
+5. Evaluating the semantic equivalence of translations original and back-translated items.
 
 ---
 
@@ -62,7 +62,7 @@ items_data <-
 
 This step wraps the item data and metadata into a `TranslationItems` object, which stores everything needed to construct prompts for the LLM. It also loads example translations to guide the model.
 
-If `examples` is provided, it must be either:
+It possible and encouraged to use examples of existing transkations from the source to the target language in the relevant domain to improve translation quality and to foster consistency with existing instruments. If `examples` is provided, it must be either:
 
 * A data frame with `source_item` and `target_item` columns
 * A path to an Excel file with the same structure
@@ -81,11 +81,12 @@ items <- prep_TranslationItems(
 **Important Parameters:**
 
 * `source_language` / `target_language`: Human language labels
+* `examples`
 * `domain`: Contextual domain to tailor prompt instructions
 * `batch_vars`: Columns used to group items for batch processing
 * `reverse_transl = FALSE`: Ensures examples are in forward direction
 
-`TranslationItems` will use the following default guidelines for the translation:
+The function `TranslationItems` will use the following default guidelines for the translation:
 
 ```{r, results='asis'}
 cat(default_guidelines())
@@ -105,7 +106,7 @@ my_guidelines =
 '
 ```
 
-And 
+and add these additional guidelines to the call of `prep_TranslationItems`:
 
 ```{r, eval=FALSE}
 items <- prep_TranslationItems(
@@ -119,7 +120,7 @@ items <- prep_TranslationItems(
 )
 ```
 
-So that the translation will use both the default and the additional guidelines.
+so that the translation will use both the default and the additional guidelines.
 
 We continue with only the default guidelines.
 
@@ -134,6 +135,8 @@ If no `ellmer` chat object is provided, translate_survey() attempts to initializ
 - Anthropic
 
 This behavior allows flexible usage with various LLM backends.
+
+Lets start the translation:
 
 ```{r translation}
 translated_items <- translate_survey(items, llm_model =  "gemini-2.0-flash-lite")
@@ -169,7 +172,7 @@ items_back_translation <- prep_TranslationItems(
 ```
 
 
-The Expected input is a  data.table with a `Text` column containing the `translated_item` values from the forward pass
+The expected input is a  data.table with a `Text` column containing the `translated_item` values from the forward pass
 
 
 The back translation is  as step 3, but now the source is the target language and vice versa. This step helps verify that the translation preserved the original meaning.
@@ -182,18 +185,14 @@ flextable(head(back_translated_items)[, Text := NULL])
 
 ## Step 5: Evaluate Translation Quality
 
-This step compares the original and back-translated text to check for semantic fidelity using an LLM. Each item is evaluated and labeled either `"OK"` (meaning preserved) or `"deviation:[reason]"` if meaning differs.
+This step compares the original and back-translated text to check for semantic fidelity using an LLM. Each item is evaluated and labeled either `"OK"` (meaning preserved) or `"deviation:[reason]"` if the meaning (or tone) differs.
+
+`translated_items` must contain `Text` and `translated_item`, `back_translated_items` 
+must contain `translated_item`, and both data sets must have the same row order.
 
 ```{r evaluate_translations}
 evaluation <- eval_translations(translated_items, back_translated_items)
 ```
-
-
-**Requirements:**
-
-* `translated_items` must contain `Text` and `translated_item`
-* `back_translated_items` must contain `translated_item`
-* Both data sets must have the same row order
 
 And we can review the evaluation, especially where the LLM detected inconsistencies.
 
@@ -216,15 +215,15 @@ Here are the default guidlines for the evaluation of the back translation:
 cat(default_backtrans_guidelines())
 ```
 
-To use different guidelines, you can first generate your own guidelines and then 
+To use different guidelines, one can first generate own guidelines and then 
 submit them to the `eval_translations` function:
 
-```{r, eval = FALSE}
+```{r evaluation2}
 back_trans_guidelines = 
 '
-"You are an expert linguistic evaluator specializing in survey translation quality."
-"Your task is to evaluate the semantic equivalence between original survey statements and their back-translated versions."
-"Don\'t be overly strict in the evaluation. Not all nuances can be transported back and forth between languages."
+You are an expert linguistic evaluator specializing in survey translation quality.
+Your task is to evaluate the semantic equivalence between original survey statements and their back-translated versions.
+Do not be too strict in the evaluation. Not all nuances can be transported back and forth between languages.
 '
 evaluation <- 
   eval_translations(
@@ -232,7 +231,13 @@ evaluation <-
   back_translated_items,
   guidelines = back_trans_guidelines)
 
+n = nrow(evaluation)
+n_not_OK = nrow(evaluation[evaluation != "OK"])
+n_OK = n-n_not_OK
 ```
+
+Now `r n_not_OK` translations (`r round(n_not_OK/n*100)`%) were flagged as not OK.
+Users have to decide which emphasis and strictness are appropriate for their application.
 
 
 ##  Step 6: Export Translations and Evaluations to Word or Excel
