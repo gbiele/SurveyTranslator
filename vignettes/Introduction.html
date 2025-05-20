@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-05-15">
+<meta name="dcterms.date" content="2025-05-20">
 
 <title>Translating Survey Items with Large Language Models</title>
 <style>
@@ -2190,7 +2190,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">May 15, 2025</p>
+      <p class="date">May 20, 2025</p>
     </div>
   </div>
   
@@ -2202,276 +2202,293 @@ vertical-align: -.125em;
 </header>
 
 
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(SurveyTranslator)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>The <code>{surveytranslate}</code> package enables structured, consistent, and culturally appropriate translations of survey items using large language models (LLMs). It is designed for researchers and practitioners working with mental health instruments, especially in youth contexts.</p>
-<p>This vignette shows how to use the core function <code>llm_translate()</code> to translate survey items, instructions, and response options from English into another language (e.g., Norwegian), using example-based prompting and customizable translation guidelines.</p>
+<p>The <code>surveyTranslate</code> package streamlines the process of translating survey instruments using large language models (LLMs). It provides utilities for preparing input data, managing example-based prompting, batch processing, automated back translation, and evaluating translation quality via semantic comparison.</p>
+<p>This vignette walks through a complete translation workflow:</p>
+<ol type="1">
+<li>Preparing source survey items</li>
+<li>Setting up translation context with examples</li>
+<li>Executing translation using LLMs</li>
+<li>Performing back-translation to check fidelity</li>
+<li>Evaluating the semantic equivalence of translations</li>
+</ol>
+<hr>
 </section>
-<section id="setup" class="level2">
-<h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<p>Before using the package, ensure you have one or more API keys for supported LLMs set in your <code>.Renviron</code> file:</p>
+<section id="step-1-load-source-items" class="level2">
+<h2 class="anchored" data-anchor-id="step-1-load-source-items">Step 1: Load Source Items</h2>
+<p>First we load survey item data from an Excel file using <code>readxl::read_xlsx</code>. The input must contain at least one column named <code>Text</code>, which holds the text to be translated. Additional metadata such as <code>Instrument</code>, <code>Topic</code>, or <code>Type</code> can be used for filtering or batching translations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>items_data <span class="ot">&lt;-</span> </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data.table</span>(<span class="fu">read_xlsx</span>(<span class="fu">here</span>(<span class="st">&quot;zdata/Translation data MENTOR.xlsx&quot;</span>)))[</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">grepl</span>(<span class="st">&quot;ACE&quot;</span>, Instrument)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Expected format:</strong></p>
 <ul>
-<li><code>GOOGLE_API_KEY</code> for Google Gemini</li>
-<li><code>OPENAI_API_KEY</code> for OpenAI</li>
-<li><code>ANTHROPIC_API_KEY</code> for Claude (Anthropic)</li>
+<li>Excel file (.xlsx or .xls)</li>
+<li>Must include a <code>Text</code> column</li>
+<li>Additional columns like <code>Instrument</code>, <code>Topic</code>, <code>Type</code>, etc. are optional but helpful for batch processing</li>
+<li>There must be no line breaks in any item text</li>
 </ul>
-<p>The function will automatically select the best available backend.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(SurveyTranslator)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(magrittr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<hr>
 </section>
-<section id="basic-translation" class="level2">
-<h2 class="anchored" data-anchor-id="basic-translation">Basic Translation</h2>
-<p>Translate a list of items stored in a plain text file, guided by example translations from an Excel spreadsheet:</p>
+<section id="step-2-prepare-for-forward-translation" class="level2">
+<h2 class="anchored" data-anchor-id="step-2-prepare-for-forward-translation">Step 2: Prepare for Forward Translation</h2>
+<p>This step wraps the item data and metadata into a <code>TranslationItems</code> object, which stores everything needed to construct prompts for the LLM. It also loads example translations to guide the model.</p>
+<p>If <code>examples</code> is provided, it must be either:</p>
+<ul>
+<li>A data frame with <code>source_item</code> and <code>target_item</code> columns</li>
+<li>A path to an Excel file with the same structure</li>
+</ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>translated_items <span class="ot">=</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">llm_translate</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">source_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/BCFPI_items.txt&quot;</span>),</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">example_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/Sample surveys translation.xlsx&quot;</span>),</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">batch_size =</span> <span class="dv">15</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] &quot;### Guideline for translation:&quot;
-
-      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
-      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
-      &quot;Translate questions as questions, and statements as statements.&quot;,
-      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
-NULL</code></pre>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>items <span class="ot">&lt;-</span> <span class="fu">prep_TranslationItems</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> items_data,</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">examples =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/Sample surveys translation.xlsx&quot;</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">source_language =</span> <span class="st">&quot;English&quot;</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">target_language =</span> <span class="st">&quot;Norwegian&quot;</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">domain =</span> <span class="st">&quot;Youth mental health&quot;</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">batch_vars =</span> <span class="fu">c</span>(<span class="st">&quot;Instrument&quot;</span>, <span class="st">&quot;Topic&quot;</span>)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Processed batch 1 of 4 
-Processed batch 2 of 4 
-Processed batch 3 of 4 
-Processed batch 4 of 4 </code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a> knitr<span class="sc">::</span><span class="fu">kable</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">head</span>(translated_items)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>   )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 45%">
-<col style="width: 54%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">original_item</th>
-<th style="text-align: left;">translated_item</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Regulating Attention, Impulsivity and Activity</td>
-<td style="text-align: left;">Regulering av oppmerksomhet, impulsivitet og aktivitetsnivå</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">fail to finish things you start</td>
-<td style="text-align: left;">Har problemer med å fullføre ting du starter på</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">are easily distracted or have trouble sticking to an activity</td>
-<td style="text-align: left;">Blir lett distrahert eller har problemer med å holde deg til en aktivitet</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">jump from one activity to another</td>
-<td style="text-align: left;">Hopper fra en aktivitet til en annen</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">have difficulty following directions or instructions</td>
-<td style="text-align: left;">Har vanskelig for å følge retninger eller instruksjoner</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">are impulsive, or you act without stopping to think</td>
-<td style="text-align: left;">Er impulsiv, eller handler uten å tenke deg om</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</section>
-<section id="using-custom-guidelines" class="level2">
-<h2 class="anchored" data-anchor-id="using-custom-guidelines">Using Custom Guidelines</h2>
-<p>You can provide a set of additional guidelines to influence translation style and tone. This is useful when working with specific age groups or cultural contexts:</p>
+<p><strong>Important Parameters:</strong></p>
+<ul>
+<li><code>source_language</code> / <code>target_language</code>: Human language labels</li>
+<li><code>domain</code>: Contextual domain to tailor prompt instructions</li>
+<li><code>batch_vars</code>: Columns used to group items for batch processing</li>
+<li><code>reverse_transl = FALSE</code>: Ensures examples are in forward direction</li>
+</ul>
+<p><code>TranslationItems</code> will use the following default guidelines for the translation:</p>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="fu">default_guidelines</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre><code>  &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
+  &quot;When an item topic, instructions, or response options are given, translate these first.&quot;
+  &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
+  &quot;Translate questions as questions, and statements as statements.&quot;,
+  &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;</code></pre>
+<p>The instructions can be extended by adding additional guidelines. For instance, we can specify:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>my_guidelines <span class="ot">=</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;&quot;Age-Appropriate Language: Use terminology and phrasing that are easily understandable and appropriate for adolescents aged 13–18.&quot;,</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;&quot;Age-Appropriate Language: Use terminology and phrasing that are easily understandable and appropriate for adolescents aged 13–18.&quot;,</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;Consistency with Research and Practice: Ensure that the language is consistent with terminology typically used in youth mental health research and clinical practice in the target country and language.&quot;,</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;Natural Phrasing: Do not translate idioms, common expressions, or culturally specific phrases literally. Instead, use equivalent expressions that sound natural and familiar to youth in the target language.&quot;,</span></span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;Preserve Psychological Meaning: Retain the intended meaning and nuance of each item, even if this requires rewording or restructuring. Clarity and conceptual equivalence are more important than literal translation.&quot;,</span></span>
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;Cultural Appropriateness: Ensure that all content is culturally relevant and sensitive. Avoid references or terms that may be confusing, inappropriate, or irrelevant in the local context.&quot;,</span></span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;Alignment with Existing Translations: Where applicable, align terminology with existing validated translations of similar mental health instruments used in the target language.&quot;,</span></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;Translator Notes: If a direct translation is not feasible or if you had to make interpretive decisions, please include a brief note explaining your choices.&quot;</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>translated_items_b <span class="ot">=</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">llm_translate</span>(</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">source_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/BCFPI_items.txt&quot;</span>),</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">example_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/Sample surveys translation.xlsx&quot;</span>),</span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">guidelines =</span> my_guidelines,</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">batch_size =</span> <span class="dv">15</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] &quot;### Guideline for translation:&quot;
-
-      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
-      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
-      &quot;Translate questions as questions, and statements as statements.&quot;,
-      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
-
-&quot;Age-Appropriate Language: Use terminology and phrasing that are easily understandable and appropriate for adolescents aged 13–18.&quot;,
-&quot;Consistency with Research and Practice: Ensure that the language is consistent with terminology typically used in youth mental health research and clinical practice in the target country and language.&quot;,
-&quot;Natural Phrasing: Do not translate idioms, common expressions, or culturally specific phrases literally. Instead, use equivalent expressions that sound natural and familiar to youth in the target language.&quot;,
-&quot;Preserve Psychological Meaning: Retain the intended meaning and nuance of each item, even if this requires rewording or restructuring. Clarity and conceptual equivalence are more important than literal translation.&quot;,
-&quot;Cultural Appropriateness: Ensure that all content is culturally relevant and sensitive. Avoid references or terms that may be confusing, inappropriate, or irrelevant in the local context.&quot;,
-&quot;Alignment with Existing Translations: Where applicable, align terminology with existing validated translations of similar mental health instruments used in the target language.&quot;,
-&quot;Translator Notes: If a direct translation is not feasible or if you had to make interpretive decisions, please include a brief note explaining your choices.&quot;
-NULL</code></pre>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="st">&#39;</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Processed batch 1 of 4 
-Processed batch 2 of 4 
-Processed batch 3 of 4 
-Processed batch 4 of 4 </code></pre>
-</div>
-</div>
-<p>Compare translations:</p>
+<p>And</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>different_translations <span class="ot">=</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">which</span>(translated_items[, translated_item] <span class="sc">!=</span> translated_items_b[, translated_item])</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>comp <span class="ot">=</span> </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  translated_items[different_translations],</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  translated_items_b[different_translations, translated_item]</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(comp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<colgroup>
-<col style="width: 29%">
-<col style="width: 35%">
-<col style="width: 34%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">original_item</th>
-<th style="text-align: left;">translated_item</th>
-<th style="text-align: left;">V2</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">fail to finish things you start</td>
-<td style="text-align: left;">Har problemer med å fullføre ting du starter på</td>
-<td style="text-align: left;">Har problemer med å fullføre ting du har begynt på</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">are easily distracted or have trouble sticking to an activity</td>
-<td style="text-align: left;">Blir lett distrahert eller har problemer med å holde deg til en aktivitet</td>
-<td style="text-align: left;">Blir lett distrahert eller har problemer med å holde på med en aktivitet</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">have difficulty following directions or instructions</td>
-<td style="text-align: left;">Har vanskelig for å følge retninger eller instruksjoner</td>
-<td style="text-align: left;">Har vanskelig for å følge veiledninger eller instruksjoner</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">fidget</td>
-<td style="text-align: left;">Fikle</td>
-<td style="text-align: left;">Fikler</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">blame others for your own mistakes</td>
-<td style="text-align: left;">Gir andre skylden for dine egne feil</td>
-<td style="text-align: left;">Skylder på andre for dine egne feil</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">are resentful or feel spiteful</td>
-<td style="text-align: left;">Er bitter eller føler deg hevngjerrig</td>
-<td style="text-align: left;">Er bitter eller føler deg ondskapsfull</td>
-</tr>
-</tbody>
-</table>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>items <span class="ot">&lt;-</span> <span class="fu">prep_TranslationItems</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> items_data,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">examples =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/Sample surveys translation.xlsx&quot;</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">source_language =</span> <span class="st">&quot;English&quot;</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">target_language =</span> <span class="st">&quot;Norwegian&quot;</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">domain =</span> <span class="st">&quot;Youth mental health&quot;</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">guidelines =</span> my_guidelines,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">batch_vars =</span> <span class="fu">c</span>(<span class="st">&quot;Instrument&quot;</span>, <span class="st">&quot;Topic&quot;</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>So that the translation will use both the default and the additional guidelines.</p>
+<p>We continue with only the default guidelines.</p>
+</section>
+<section id="step-3-translate-the-items" class="level2">
+<h2 class="anchored" data-anchor-id="step-3-translate-the-items">Step 3: Translate the Items</h2>
+<p>This function submits the items for translation to the LLM, using the examples and batching instructions. An optional <code>sleep</code> parameter helps throttle requests to avoid rate limits.</p>
+<p>If no <code>ellmer</code> chat object is provided, translate_survey() attempts to initialize one using the given llm_model and api_key. If api_key is NULL, the function looks for a valid API key in the environment, trying the following providers in order:</p>
+<ul>
+<li>Gemini (Google)</li>
+<li>OpenAI</li>
+<li>Anthropic</li>
+</ul>
+<p>This behavior allows flexible usage with various LLM backends.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>translated_items <span class="ot">&lt;-</span> <span class="fu">translate_survey</span>(items, <span class="at">llm_model =</span>  <span class="st">&quot;gemini-2.0-flash-lite&quot;</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Processed batch 1 of 7 
+Processed batch 2 of 7 
+Processed batch 3 of 7 
+Processed batch 4 of 7 
+Processed batch 5 of 7 
+Processed batch 6 of 7 
+Processed batch 7 of 7 </code></pre>
+</div>
+</div>
+<p>The function returns a <code>data.table</code> with at least <code>original_item</code> and <code>translated_item</code>, along with any batch-related metadata.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(translated_items)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                                                                                             original_item
+                                                                                                                    &lt;char&gt;
+1:                                                                                       During your life up to this point
+2:                                                            Always, Most of the time, Sometimes, Rarely, Never, Refused 
+3:                                                    1. Did your parents/guardians understand your problems and worries? 
+4: 2. Did your parents/guardians really know what you were doing with your free time when you were not at school or work? 
+5:                                                                           Many times, A few times, Once, Never, Refused
+6:             3. How often did your parents/guardians not give you enough food even when they could easily have done so? 
+                                                                                          translated_item
+                                                                                                   &lt;char&gt;
+1:                                                                      I løpet av livet ditt frem til nå
+2:                                Alltid, Nesten alltid, Noen ganger, Sjelden, Aldri, Ønsker ikke å svare
+3:                                   1. Forsto foreldrene/foresatte dine problemene og bekymringene dine?
+4:  2. Visste foreldrene/foresatte dine hva du gjorde på fritiden når du ikke var på skolen eller jobben?
+5:                                         Mange ganger, Noen ganger, En gang, Aldri, Ønsker ikke å svare
+6: 3. Hvor ofte fikk du ikke nok mat av foreldrene/foresatte dine, selv om de lett kunne ha gitt deg det?
+   Instrument       Topic   Type
+       &lt;char&gt;      &lt;char&gt; &lt;char&gt;
+1:        ACE ACE_Parents  Instr
+2:        ACE ACE_Parents     RT
+3:        ACE ACE_Parents   Item
+4:        ACE ACE_Parents   Item
+5:        ACE ACE_Parents     RT
+6:        ACE ACE_Parents   Item
+                                                                                                                      Text
+                                                                                                                    &lt;char&gt;
+1:                                                                                       During your life up to this point
+2:                                                            Always, Most of the time, Sometimes, Rarely, Never, Refused 
+3:                                                    1. Did your parents/guardians understand your problems and worries? 
+4: 2. Did your parents/guardians really know what you were doing with your free time when you were not at school or work? 
+5:                                                                           Many times, A few times, Once, Never, Refused
+6:             3. How often did your parents/guardians not give you enough food even when they could easily have done so? 
+   Instruction Response batch_idx
+        &lt;char&gt;   &lt;char&gt;     &lt;int&gt;
+1:          I3     &lt;NA&gt;         1
+2:        &lt;NA&gt;       R2         1
+3:          I3       R2         1
+4:          I3       R2         1
+5:        &lt;NA&gt;       R3         1
+6:          I3       R3         1</code></pre>
+</div>
+</div>
+<hr>
+</section>
+<section id="step-4-prepare-items-for-back-translation" class="level2">
+<h2 class="anchored" data-anchor-id="step-4-prepare-items-for-back-translation">Step 4: Prepare Items for Back Translation</h2>
+<p>After forward translation, we prepare the back translation by creating a new <code>TranslationItems</code> object with the translated texts as input. We set <code>reverse_transl = TRUE</code> so the example data swaps <code>source_item</code> and <code>target_item</code>, reflecting the reversed translation direction.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>data_back_translation <span class="ot">&lt;-</span> translated_items[</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  , .(Instrument, Topic, translated_item, Type, Instruction, Response)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>][, .(<span class="at">Text =</span> translated_item, Instrument, Topic, Type, Instruction, Response)]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>items_back_translation <span class="ot">&lt;-</span> <span class="fu">prep_TranslationItems</span>(</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_back_translation,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">examples =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/Sample surveys translation.xlsx&quot;</span>),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">reverse_transl =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">source_language =</span> <span class="st">&quot;Norwegian&quot;</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">target_language =</span> <span class="st">&quot;English&quot;</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">domain =</span> <span class="st">&quot;Youth mental health&quot;</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">batch_vars =</span> <span class="fu">c</span>(<span class="st">&quot;Instrument&quot;</span>, <span class="st">&quot;Topic&quot;</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Expected input:</strong></p>
+<ul>
+<li>A data.table with a <code>Text</code> column containing the <code>translated_item</code> values from the forward pass</li>
+</ul>
+<hr>
+</section>
+<section id="step-5-perform-back-translation" class="level2">
+<h2 class="anchored" data-anchor-id="step-5-perform-back-translation">Step 5: Perform Back Translation</h2>
+<p>Same as step 3, but now the source is the target language and vice versa. This step helps verify that the translation preserved the original meaning.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>back_translated_items <span class="ot">&lt;-</span> <span class="fu">translate_survey</span>(items_back_translation)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Processed batch 1 of 7 
+Processed batch 2 of 7 
+Processed batch 3 of 7 
+Processed batch 4 of 7 
+Processed batch 5 of 7 
+Processed batch 6 of 7 
+Processed batch 7 of 7 </code></pre>
 </div>
 </div>
 </section>
-<section id="translating-instructions-and-scales" class="level2">
-<h2 class="anchored" data-anchor-id="translating-instructions-and-scales">Translating Instructions and Scales</h2>
-<p>Change the <code>example_type</code> argument to translate other components such as instructions or response options:</p>
+<section id="step-6-evaluate-translation-quality" class="level2">
+<h2 class="anchored" data-anchor-id="step-6-evaluate-translation-quality">Step 6: Evaluate Translation Quality</h2>
+<p>This step compares the original and back-translated text to check for semantic fidelity using an LLM. Each item is evaluated and labeled either <code>&quot;OK&quot;</code> (meaning preserved) or <code>&quot;deviation:[reason]&quot;</code> if meaning differs.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>translated_instructions <span class="ot">=</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">llm_translate</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">source_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/BCFPI_instructions.txt&quot;</span>),</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">example_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/Sample surveys translation.xlsx&quot;</span>),</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">example_type =</span> <span class="st">&quot;Instructions&quot;</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  ) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>evaluation <span class="ot">&lt;-</span> <span class="fu">eval_translations</span>(translated_items, back_translated_items)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Review deviations</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>evaluation[evaluation <span class="sc">!=</span> <span class="st">&quot;OK&quot;</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] &quot;### Guideline for translation:&quot;
-
-      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
-      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
-      &quot;Translate questions as questions, and statements as statements.&quot;,
-      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
-NULL</code></pre>
+<pre><code>                                                                                                          original
+                                                                                                            &lt;char&gt;
+1:                                            1. Did your parents/guardians understand your problems and worries? 
+2:                     5. How often did your parents/guardians not send you to school even when it was available? 
+3: 12. Did you see or hear a parent or household member in your home being slapped, kicked, punched or beaten up? 
+4:                                                     I was hit, kicked, pushed, shoved around, or locked indoors
+                                                                                                       translation
+                                                                                                            &lt;char&gt;
+1:                                            1. Forsto foreldrene/foresatte dine problemene og bekymringene dine?
+2:                        5. Hvor ofte sendte ikke foreldrene/foresatte dine deg på skolen, selv om det var mulig?
+3: 12. Så eller hørte du at en forelder eller noen i husstanden ble slått, sparket, slått eller banket opp hjemme?
+4:                                                   Jeg ble slått, sparket, dyttet, skubbet rundt eller låst inne
+                                                                                                 back_translation
+                                                                                                           &lt;char&gt;
+1:                                           1. Did your parents/guardians understand your problems and concerns?
+2:                   5. How often did your parents/guardians not send you to school, even though it was possible?
+3: 12. Did you see or hear a parent or someone in the household being hit, kicked, slapped, or beaten up at home?
+4:                                                     I was hit, kicked, pushed, shoved around, or locked inside
+                                                                                                                      evaluation
+                                                                                                                          &lt;char&gt;
+1:                                       deviation: &#39;worries&#39; is translated to &#39;concerns&#39; which is a slightly different meaning.
+2:                                     deviation: &#39;available&#39; is translated to &#39;possible&#39; which is a slightly different meaning.
+3: deviation: The order of &#39;slapped&#39; and &#39;kicked&#39; is switched in the back translation, and &#39;punched&#39; is translated to &#39;slapped&#39;.
+4:                                         deviation: &#39;indoors&#39; is translated to &#39;inside&#39; which is a slightly different meaning.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>translated_scales <span class="ot">=</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">llm_translate</span>(</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">source_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/BCFPI_RespOps.txt&quot;</span>),</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">example_file =</span> <span class="fu">here</span>(<span class="st">&quot;zdata/Sample surveys translation.xlsx&quot;</span>),</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">example_type =</span> <span class="st">&quot;Response options&quot;</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] &quot;### Guideline for translation:&quot;
-
-      &quot;Ensure each item is translated accurately and retains its original meaning.&quot;,
-      &quot;Maintain consistency in terminology and phrasing across all items.&quot;,
-      &quot;Translate questions as questions, and statements as statements.&quot;,
-      &quot;If an item contains a placeholder like &#39;[Variable]&#39;, keep the placeholder as is.&quot;
-NULL</code></pre>
 </div>
-</div>
+<p><strong>Requirements:</strong></p>
+<ul>
+<li><code>translated_items</code> must contain <code>Text</code> and <code>translated_item</code></li>
+<li><code>back_translated_items</code> must contain <code>translated_item</code></li>
+<li>Both data sets must have the same row order</li>
+</ul>
 </section>
-<section id="exporting-translations-to-word-or-excel" class="level2">
-<h2 class="anchored" data-anchor-id="exporting-translations-to-word-or-excel">Exporting Translations to Word or Excel</h2>
+<section id="step-7-export-translations-and-evaluations-to-word-or-excel" class="level2">
+<h2 class="anchored" data-anchor-id="step-7-export-translations-and-evaluations-to-word-or-excel">Step 7: Export Translations and Evaluations to Word or Excel</h2>
 <p>You can save the translated output as a Word document or Excel file for distribution or review.</p>
 <section id="save-to-excel" class="level3">
 <h3 class="anchored" data-anchor-id="save-to-excel">Save to Excel</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>writexl<span class="sc">::</span><span class="fu">write_xlsx</span>(translated_items, <span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;translated_items.xlsx&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>writexl<span class="sc">::</span><span class="fu">write_xlsx</span>(evaluation, <span class="at">path =</span> <span class="fu">here</span>(<span class="st">&quot;translation_evaluation.xlsx&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="save-to-word" class="level3">
 <h3 class="anchored" data-anchor-id="save-to-word">Save to Word</h3>
 <p>To save the table to a Word document, use <code>flextable</code>:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(flextable)</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(officer)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>ft <span class="ot">&lt;-</span> <span class="fu">flextable</span>(translated_items_b) <span class="sc">|&gt;</span> </span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;original_item&quot;</span>,     <span class="at">width =</span> <span class="fl">2.75</span>) <span class="sc">|&gt;</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;translated_item&quot;</span>, <span class="at">width =</span> <span class="fl">2.75</span>) <span class="sc">|&gt;</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_table_properties</span>(<span class="at">layout =</span> <span class="st">&quot;fixed&quot;</span>, <span class="at">width =</span> <span class="dv">1</span>)</span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>doc <span class="ot">&lt;-</span> <span class="fu">read_docx</span>() <span class="sc">|&gt;</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">body_add_flextable</span>(ft)</span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(doc, <span class="at">target =</span> <span class="fu">here</span>(<span class="st">&quot;translated_items.docx&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(flextable)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(officer)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>ft <span class="ot">&lt;-</span> <span class="fu">flextable</span>(evaluation) <span class="sc">|&gt;</span> </span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;original&quot;</span>,     <span class="at">width =</span> <span class="fl">1.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;translation&quot;</span>, <span class="at">width =</span> <span class="fl">1.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;back_translation&quot;</span>, <span class="at">width =</span> <span class="fl">1.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">width</span>(<span class="at">j =</span> <span class="st">&quot;evaluation&quot;</span>, <span class="at">width =</span> <span class="fl">1.5</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_table_properties</span>(<span class="at">layout =</span> <span class="st">&quot;fixed&quot;</span>, <span class="at">width =</span> <span class="dv">1</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>doc <span class="ot">&lt;-</span> <span class="fu">read_docx</span>() <span class="sc">|&gt;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">body_add_flextable</span>(ft)</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(doc, <span class="at">target =</span> <span class="fu">here</span>(<span class="st">&quot;translated_items.docx&quot;</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 </section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
-<p>The <code>{SurveyTranslator}</code> package simplifies questionnaire translation using LLMs by using:</p>
+<p>The <code>surveyTranslate</code> package supports:</p>
 <ul>
-<li>Domain-specific prompting</li>
-<li>Example-based learning</li>
-<li>Customizable translation guidelines</li>
-<li>Batch processing</li>
-<li>Support for multiple language model providers</li>
+<li>Minimal input requirements (just a <code>Text</code> column)</li>
+<li>Modular translation preparation with rich metadata</li>
+<li>Configurable batching by variables or size</li>
+<li>LLM-based translation, back-translation, and quality control</li>
+<li>JSON-guided prompt generation for reproducible workflows</li>
 </ul>
+<p>This pipeline is adaptable to any language pair or survey domain.</p>
 </section>
 
 </main>

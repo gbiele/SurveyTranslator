@@ -2,28 +2,22 @@
 % Please edit documentation in R/translate_survey.R
 \name{.batch_by_size}
 \alias{.batch_by_size}
-\title{Batch by size}
+\title{Batch process items by size}
 \usage{
-.batch_by_size(bp, items_to_translate, batch_size, chat, sleep)
+.batch_by_size(items_obj, bp, chat, sleep)
 }
 \arguments{
-\item{bp}{Base prompt template.}
+\item{items_obj}{An object containing data to process and the batch size. Must have a `data` element with a `Text` column and a `batch_size` element.}
 
-\item{items_to_translate}{Data with `Text` column for translation.}
+\item{bp}{A string template for the prompt.}
 
-\item{batch_size}{Number of items per batch.}
+\item{chat}{A chat object or argument passed to `.translate_llm`.}
 
-\item{chat}{An `ellmer` chat object.}
-
-\item{sleep}{Seconds to pause between batches.}
+\item{sleep}{A single number representing the time to sleep between batches.}
 }
 \value{
-A `data.table` of translation results.
+A data.table containing the results of processing items in batches.
 }
 \description{
-Processes items in batches of fixed size, sending each batch to the LLM via `.translate_llm()`.
+A short description...
 }
-\keyword{batches.}
-\keyword{between}
-\keyword{internal}
-\keyword{pause}

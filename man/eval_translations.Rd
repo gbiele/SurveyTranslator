@@ -7,6 +7,7 @@
 eval_translations(
   translated_items,
   back_translated_items,
+  guidelines = default_backtrans_guidelines(),
   chat = NULL,
   api_key = NULL,
   llm_model = NULL
@@ -18,6 +19,10 @@ and translated ('translated_item') survey texts.}
 
 \item{back_translated_items}{A `data.table` or `data.frame` with back-translated
 texts ('translated_item').}
+
+\item{guidelines}{a string with the description of the evaluation is performed.
+Default is `default_backtrans_guidelines()`.by setting own guidelines one can
+influence emphasis (e.g. semantics, tone) or strictness of the evaluation.}
 
 \item{chat}{LLM chat client object. If `NULL`, initialized using `llm_model` and `api_key`.}
 
@@ -34,7 +39,7 @@ Evaluates translation and back-translation equivalence (semantic and tonal) usin
 }
 \details{
 Requires `data.table` and `jsonlite`. Assumes `translated_items` and
-  `back_translated_items` are row-aligned. Assumes `prompt_back_trans()` is
+  `back_translated_items` are row-aligned. Assumes `prompt_evaluation()` is
   defined and correctly generates an LLM prompt from the round-trip JSON data.
   The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
 }

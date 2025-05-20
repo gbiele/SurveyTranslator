@@ -2,49 +2,22 @@
 % Please edit documentation in R/translate_survey.R
 \name{.batch_by_vars}
 \alias{.batch_by_vars}
-\title{Batch items by variables}
+\title{Title}
 \usage{
-.batch_by_vars(
-  bp,
-  items_to_translate,
-  batch_vars,
-  get_instr,
-  source_language,
-  target_language,
-  guidelines,
-  domain,
-  EXAMPLES,
-  chat,
-  sleep
-)
+.batch_by_vars(items_obj, bp, EXAMPLES, chat, sleep)
 }
 \arguments{
-\item{bp}{Base prompt template.}
+\item{items_obj}{An object containing data and batching information.}
 
-\item{items_to_translate}{`data.table` with items, `Text` and `batch_vars` columns.}
+\item{bp}{A base prompt string.}
 
-\item{batch_vars}{Variables for grouping items into batches.}
+\item{chat}{Chat context for the LLM.}
 
-\item{get_instr}{Logical. If `TRUE`, incorporates instructions/response options.}
-
-\item{source_language}{Source language.}
-
-\item{target_language}{Target language.}
-
-\item{guidelines}{Optional custom translation guidelines.}
-
-\item{domain}{Domain context.}
-
-\item{EXAMPLES}{JSON string of example translations.}
-
-\item{chat}{An `ellmer` chat object.}
-
-\item{sleep}{Seconds to pause between batches.}
+\item{sleep}{A numeric value for sleeping between batches.}
 }
 \value{
-A `data.table` of translation results with original items and batch index.
+A data.table containing the results for each batch.
 }
 \description{
-Groups and processes items by specified variables, sending each batch to the LLM via `.translate_llm()`.
+A short description...
 }
-\keyword{internal}

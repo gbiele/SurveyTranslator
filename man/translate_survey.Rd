@@ -2,79 +2,30 @@
 % Please edit documentation in R/translate_survey.R
 \name{translate_survey}
 \alias{translate_survey}
-\title{Translate survey items using a language model}
+\title{Translate survey items using a TranslationItems object}
 \usage{
 translate_survey(
-  source_items,
-  example_file,
-  rev_ex = FALSE,
-  source_language = "English",
-  target_language = "Norwegian",
-  domain = "Youth mental health",
-  guidelines = NULL,
-  example_type = "Item",
+  items_obj,
   chat = NULL,
-  batch_size = NULL,
-  get_instr = TRUE,
-  batch_vars = c("Instrument", "Topic"),
+  llm_model = NULL,
   api_key = NULL,
-  sleep = 7,
-  llm_model = NULL
+  sleep = 7
 )
 }
 \arguments{
-\item{source_items}{Path to file or `data.table` of survey items for translation.}
+\item{items_obj}{A `TranslationItems` object.}
 
-\item{example_file}{Path to Excel file with example translations.}
+\item{chat}{Optional. An `ellmer` chat object.}
 
-\item{rev_ex}{Logical. If `TRUE`, swaps source/target languages for examples.}
+\item{llm_model}{Optional. LLM model name.}
 
-\item{source_language}{Source language. Defaults to 'English'.}
+\item{api_key}{Optional. API key.}
 
-\item{target_language}{Target language. Defaults to 'Norwegian'.}
-
-\item{domain}{Domain context for translation tone/terminology. Defaults to 'Youth mental health'.}
-
-\item{guidelines}{Optional custom translation guidelines (character vector).}
-
-\item{example_type}{Type of examples ('Item', 'Instructions', 'Response options'). Defaults to 'Item'.}
-
-\item{chat}{`ellmer` chat object. If `NULL`, auto-detected by `.get_chat()`.}
-
-\item{batch_size}{Integer. Batch size for translation. `NULL` for single request.}
-
-\item{get_instr}{Logical. If `TRUE`, incorporates instructions/response options into batches.}
-
-\item{batch_vars}{Character vector. Variables to group items for batching via `.batch_by_vars()`.}
-
-\item{api_key}{Your LLM API key. Passed to `.get_chat()` if `chat` is `NULL`.}
-
-\item{sleep}{Numeric. Seconds to pause between batches.}
-
-\item{llm_model}{LLM model name. Passed to `.get_chat()` if `chat` is `NULL`.}
+\item{sleep}{Seconds to pause between batches.}
 }
 \value{
-A `data.table` containing the translated survey items.
+A `data.table` of translated items.
 }
 \description{
-Translates survey items (from file or `data.table`) to a target language.
-  Manages prompts, example translations, and batching. Leverages `.translate_llm()`
-  for LLM interaction and `.get_chat()` for LLM client auto-detection.
-}
-\details{
-Uses `base_prompt()` to construct LLM prompts, `example_translations()` for examples,
-  and `dt_to_json()` for serialization. Batching is handled by `.batch_by_size()` or `.batch_by_vars()`.
-  Relies on `.get_chat()` for LLM client setup. Expected LLM output is JSON with
-  `original_item` and `translated_item`.
-}
-\examples{
-\dontrun{
-# Example: Translate all items at once
-# translated_data_single <- translate_survey("data/items.txt", "data/examples.xlsx")
-
-# Example: Translate items in batches
-# translated_data_batch <- translate_survey("data/items.txt", "data/examples.xlsx",
-#                                          batch_size = 10, target_language = "Spanish")
-}
-
+Translates items using either batch size or batch vars logic with LLM.
 }

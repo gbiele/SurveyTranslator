@@ -21,18 +21,9 @@
 base_prompt = function(source_language = NULL, target_language = NULL, guidelines = NULL,
                        domain = NULL, topic = NULL, instructions = NULL, responses = NULL)  {
 
-  default_guidelines =
-'
-      "Ensure each item is translated accurately and retains its original meaning.",
-      "When an item topic, instructions, or response options are given, translate these first."
-      "Maintain consistency in terminology and phrasing across all items.",
-      "Translate questions as questions, and statements as statements.",
-      "If an item contains a placeholder like \'[Variable]\', keep the placeholder as is."
-'
-
 
   if (is.null(guidelines)){
-    guidelines = default_guidelines
+    guidelines = default_guidelines()
   } else {
     guidelines = paste0(default_guidelines,"\n",guidelines)
   }
@@ -65,19 +56,20 @@ base_prompt = function(source_language = NULL, target_language = NULL, guideline
 }
 
 
-#' Prompt back translation
+
+#' Prompt evaluation
 #'
 #' @description
 #' A short description...
 #'
-#' @param JSON_DATA A single string containing JSON data with the columns
-#' original, translation,  back_translation.
+#' @param JSON_DATA A string containing JSON data.
+#' @param guidelines Optional. A string containing guidelines.
 #'
 #' @returns
-#' A single string representing a prompt structure including the input JSON data.
+#' A string representing a JSON structure, likely for a language model prompt.
 #'
 #' @export
-prompt_back_trans = function(JSON_DATA) {
+prompt_evaluation = function(JSON_DATA, guidelines = default_backtrans_guidelines()) {
   prompt =
   paste('
 {
@@ -86,8 +78,8 @@ prompt_back_trans = function(JSON_DATA) {
       "role": "user",
       "parts": [
         {
-          "text": "You are an expert linguistic evaluator specializing in survey translation quality.
-          Your task is to evaluate the semantic and tonal equivalence between original survey statements and their back-translated versions.
+          "text":
+          ', guidelines,'
 
           You will receive a JSON array, where each object contains an \'original\' statement, its \'translation\', and its \'back_translation\'.
 
@@ -115,4 +107,46 @@ prompt_back_trans = function(JSON_DATA) {
   }
 }
 ')
+}
+
+
+#' Default guidelines for translation.
+#'
+#' @description
+#' Translation guidelines that are added to the LLM prompt
+#'
+#' @returns
+#' A character string containing default translation guidelines.
+#'
+#' @export
+default_guidelines = function() {
+  guidelines =
+    '
+      "Ensure each item is translated accurately and retains its original meaning.",
+      "When an item topic, instructions, or response options are given, translate these first."
+      "Maintain consistency in terminology and phrasing across all items.",
+      "Translate questions as questions, and statements as statements.",
+      "If an item contains a placeholder like \'[Variable]\', keep the placeholder as is."
+'
+  return(guidelines)
+}
+
+
+#' Default guidelines for translation.
+#'
+#' @description
+#' Evaluation guidelines that are added to the LLM prompt
+#'
+#' @returns
+#' A character string containing default evaluation guidelines.
+#'
+#' @export
+default_backtrans_guidelines = function() {
+  guidelines =
+'
+      "You are an expert linguistic evaluator specializing in survey translation quality."
+       "Your task is to evaluate the semantic and tonal equivalence between original survey statements and their back-translated versions."
+       "Be relatively strict in your evaluation, nuances can matter."
+'
+  return(guidelines)
 }

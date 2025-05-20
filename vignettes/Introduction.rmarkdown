@@ -222,9 +222,9 @@ submit them to the `eval_translations` function:
 ```{r, eval = FALSE}
 back_trans_guidelines = 
 '
-"You are an expert linguistic evaluator specializing in survey translation quality."
-"Your task is to evaluate the semantic equivalence between original survey statements and their back-translated versions."
-"Don\'t be overly strict in the evaluation. Not all nuances can be transported back and forth between languages."
+You are an expert linguistic evaluator specializing in survey translation quality.
+Your task is to evaluate the semantic equivalence between original survey statements and their back-translated versions.
+Don\'t be overly strict in the evaluation. Not all nuances can be transported back and forth between languages.
 '
 evaluation <- 
   eval_translations(
@@ -276,3 +276,4 @@ The `surveyTranslate` package supports:
 * JSON-guided prompt generation for reproducible workflows
 
 This pipeline is adaptable to any language pair or survey domain.
+

@@ -7,6 +7,9 @@
 #'   and translated ('translated_item') survey texts.
 #' @param back_translated_items A `data.table` or `data.frame` with back-translated
 #'   texts ('translated_item').
+#' @param guidelines a string with the description of the evaluation is performed.
+#' Default is `default_backtrans_guidelines()`.by setting own guidelines one can
+#' influence emphasis (e.g. semantics, tone) or strictness of the evaluation.
 #' @param chat LLM chat client object. If `NULL`, initialized using `llm_model` and `api_key`.
 #' @param api_key Your LLM API key. Required if `chat` is `NULL`.
 #' @param llm_model The LLM model name.
@@ -14,7 +17,7 @@
 #' @return A `data.table` of evaluation results from the LLM, or `NULL` on error.
 #'
 #' @details Requires `data.table` and `jsonlite`. Assumes `translated_items` and
-#'   `back_translated_items` are row-aligned. Assumes `prompt_back_trans()` is
+#'   `back_translated_items` are row-aligned. Assumes `prompt_evaluation()` is
 #'   defined and correctly generates an LLM prompt from the round-trip JSON data.
 #'   The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
 #'
@@ -22,7 +25,7 @@
 #' @importFrom jsonlite toJSON fromJSON
 #'
 #' @export
-eval_translations <- function(translated_items, back_translated_items, chat = NULL, api_key = NULL, llm_model = NULL) {
+eval_translations <- function(translated_items, back_translated_items, guidelines = default_backtrans_guidelines(), chat = NULL, api_key = NULL, llm_model = NULL) {
   if (!inherits(translated_items, "data.frame")) {
     stop("`translated_items` must be a data.frame or data.table.")
   }
@@ -50,9 +53,9 @@ eval_translations <- function(translated_items, back_translated_items, chat = NU
     back_translation = back_translated_items$translated_item
   )
 
-    round_trip_json <- jsonlite::toJSON(round_trip, pretty = TRUE, auto_unbox = TRUE)
+  round_trip_json <- jsonlite::toJSON(round_trip, pretty = TRUE, auto_unbox = TRUE)
 
-  p2 <- prompt_back_trans(round_trip_json)
+  p2 <- prompt_evaluation(round_trip_json, guidelines = guidelines)
 
   if (is.null(chat)) chat = .get_chat(model = llm_model, api_key = api_key)
   eval_response <- chat$chat(p2)
