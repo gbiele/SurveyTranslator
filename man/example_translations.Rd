@@ -2,54 +2,26 @@
 % Please edit documentation in R/example_translations.R
 \name{example_translations}
 \alias{example_translations}
-\title{Get Example Translations from an Excel File}
+\title{Extract Example Translations from Excel}
 \usage{
 example_translations(file_path, instrument = NULL, rev_ex = FALSE)
 }
 \arguments{
-\item{file_path}{A single string. The full path to the Excel file (.xlsx or .xls).
-  The Excel file is expected to contain survey items or other texts
-  and their translations, organized in a specific tabular format.
-  The function reads the first sheet of the Excel file by default.
+\item{file_path}{A string. Path to the Excel file (.xlsx) with a tabular format.
+Required columns: \code{Type}, \code{Instrument}, \code{Source}, and \code{Target}.}
 
-  \strong{Expected Excel File Structure:}
-  \itemize{
-    \item \strong{Header Row:} The first row of the sheet must be a header row,
-      defining the names of the columns.
-    \item \strong{Essential Columns:} The sheet must include the following columns
-      (column names are case-sensitive as used in the function):
-      \itemize{
-        \item \code{Type}: A textual column indicating the category or type of the
-          translation item (e.g., "Item", "Instruction", "Response Scale").
-        \item \code{Instrument}: A textual column identifying the specific survey,
-          questionnaire, or document the item belongs to (e.g., "PHQ-9", "General Survey").
-          This column is used for filtering via the \code{instrument} argument.
-        \item \code{Source}: A textual column containing the original text in the
-          source language (e.g., English).
-        \item \code{Target}: A textual column containing the translated text in the
-          target language (e.g., Norwegian).
-      }
-  }}
+\item{instrument}{Optional string. Filters rows where \code{Instrument} matches.}
 
-\item{instrument}{Optional. A single string or \code{NULL}. If a string is provided,
-it specifies the value in the 'Instrument' column to filter by. If \code{NULL} (the default),
-no filtering based on instrument is performed.}
-
-\item{rev_ex}{An optional logical determining if source and target language are swapped.}
+\item{rev_ex}{Logical. If \code{TRUE}, reverses source and target columns.}
 }
 \value{
-A \code{data.table} containing two columns:
+A \code{data.table} with two columns:
 \itemize{
-  \item \code{Source}: The source language text.
-  \item \code{Target}: The corresponding target language text.
+  \item \code{source_item}: Source language text.
+  \item \code{target_item}: Corresponding translation.
 }
-The table includes rows that match the filtering criteria specified by the
 }
 \description{
-Extracts example translations from a structured Excel file.
-This function reads an Excel sheet, filters the content based on item type
-and optionally by instrument name, and returns a table of source texts
-and their corresponding target translations. It is designed to facilitate
-the retrieval of specific translation examples for use in translation workflows
-or quality assurance processes.
+Reads an Excel file containing survey translations and returns source–target pairs.
+Filters by instrument and allows optional source/target reversal.
 }

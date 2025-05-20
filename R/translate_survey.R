@@ -60,7 +60,9 @@ translate_survey = function(source_items, example_file,rev_ex = FALSE,
 
   # Load and format example translations
   EXAMPLES =
-    dt_to_json(example_translations(example_file, rev_ex = rev_ex))
+    toJSON(
+      example_translations(example_file, rev_ex = rev_ex),
+      pretty = TRUE)
 
   # Read survey items from the source file
   if (is.character(source_items)) {

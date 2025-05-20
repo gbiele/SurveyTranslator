@@ -52,20 +52,13 @@ eval_translations <- function(translated_items, back_translated_items, chat = NU
     back_translation = back_translated_items$translated_item
   )
 
-  # --- Convert to JSON ---
-  # auto_unbox = TRUE helps with single-element vectors if any column was just one value
-  round_trip_json <- jsonlite::toJSON(round_trip, pretty = TRUE, auto_unbox = TRUE)
+    round_trip_json <- jsonlite::toJSON(round_trip, pretty = TRUE, auto_unbox = TRUE)
 
-  # --- Generate Prompt ---
   p2 <- prompt_back_trans(round_trip_json)
 
-  # --- Call LLM ---
   if (is.null(chat)) chat = .get_chat(model = llm_model, api_key = api_key)
   eval_response <- chat$chat(p2)
 
-  # --- Parse LLM Response ---
-  # Remove markdown code block delimiters if present
-  # The gsub function is robust enough to handle cases where '```json' or '```' might not be present.
   clean_response_json <- gsub("```json|```", "", eval_response)
 
   parsed_response <- tryCatch({
