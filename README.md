@@ -47,44 +47,16 @@ remotes::install_github("gbiele/SurveyTranslator")
 ```r
 library(surveyTranslation)
 
-# Basic batch translation
-translated_items <- llm_translate(
-  source_file  = "Instrument_items.txt",
-  example_file = "Example_surveys_translation.xlsx",
-  batch_size   = 15
-)
-```
-
-### Custom Guidelines
-
-```r
-my_guidelines <- '
-"Age-Appropriate Language: Use terminology for adolescents.",
-"Preserve Psychological Meaning: Retain nuance even if rewording.",
-"Translator Notes: Include interpretive comments when needed."
-'
-translated_items_b <- llm_translate(
-  source_file  = "Instrument_items.txt",
-  example_file = "Example_surveys_translation.xlsx",
-  guidelines   = my_guidelines,
-  batch_size   = 15
-)
-```
-
-### Translating Instructions & Response Options
-
-```r
-translated_instructions <- llm_translate(
-  source_file  = here::here("xdata/BCFPI_instructions.txt"),
-  example_file = here::here("xdata/Sample surveys translation.xlsx"),
-  example_type = "Instructions"
+items <- prep_TranslationItems(
+  data = items_data,
+  examples = here("zdata/Sample surveys translation.xlsx"),
+  source_language = "English",
+  target_language = "Norwegian",
+  domain = "Youth mental health",
+  batch_vars = c("Instrument", "Topic")
 )
 
-translated_scales <- llm_translate(
-  source_file  = here::here("xdata/BCFPI_RespOps.txt"),
-  example_file = here::here("xdata/Sample surveys translation.xlsx"),
-  example_type = "Response options"
-)
+translated_items <- translate_survey(items)
 ```
 
 ## Contributing
