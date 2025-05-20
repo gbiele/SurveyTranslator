@@ -23,7 +23,6 @@
 #'
 #' @export
 eval_translations <- function(translated_items, back_translated_items, chat = NULL, api_key = NULL, llm_model = NULL) {
-  # --- Input Validation ---
   if (!inherits(translated_items, "data.frame")) {
     stop("`translated_items` must be a data.frame or data.table.")
   }
@@ -45,7 +44,6 @@ eval_translations <- function(translated_items, back_translated_items, chat = NU
     stop("Number of rows in `translated_items` (", nrow(translated_items), ") and `back_translated_items` (", nrow(back_translated_items), ") do not match. They must be aligned row-wise.")
   }
 
-  # --- Create Round-Trip Data ---
   round_trip <- data.table::data.table(
     original = translated_items$Text,
     translation = translated_items$translated_item,
