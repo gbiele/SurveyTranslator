@@ -2,7 +2,7 @@
 
 An R package for translating survey items, instructions, and response options using LLMs, with customizable guidelines to ensure conceptual and cultural appropriateness.
 
-An **introductory vignette** is available [here](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gbiele/SurveyTranslator/refs/heads/master/vignettes/Introduction.html?token=GHSAT0AAAAAAC5YUW63V3KYNY5GOFVS7HAY2BMTCUA).
+An **introductory vignette** is available [here]([https://htmlpreview.github.io/?https://raw.githubusercontent.com/gbiele/SurveyTranslator/refs/heads/master/vignettes/Introduction.html?token=GHSAT0AAAAAAC5YUW63V3KYNY5GOFVS7HAY2BMTCUA](https://htmlpreview.github.io/?https://raw.githubusercontent.com/gbiele/SurveyTranslator/refs/heads/master/vignettes/Introduction.html)).
 
 ## LLM API Keys
 
