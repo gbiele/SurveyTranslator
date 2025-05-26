@@ -1,6 +1,3 @@
-api_key = "AIzaSyBuh-UYHocYhpqF06ks5LBWqu-eAAzZRpk"
-m = "gemini-2.0-flash-lite"
-
 api_key = NULL
 m = NULL
 
