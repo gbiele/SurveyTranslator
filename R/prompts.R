@@ -53,10 +53,10 @@ base_prompt = function(source_language = NULL, target_language = NULL, guideline
     ',ifelse(!is.null(instructions),paste0("\"Instructions\": ", instructions,","),""),'
     ',ifelse(!is.null(responses),paste0("\"Response options\": ", responses,","),""),'
     "Guidelines": [',guidelines ,'],
-    "Output format instruction": "Your output should be a list of objects,
-    each containing two keys: \'original_item\' for the original text and
-    \'translated_item\' for its Norwegian translation, as shown in the
-    \'Example_return_structure\'."
+    "Output format instruction": "Your output MUST be a JSON array of objects.
+    Each object MUST contain EXACTLY two keys: \'original_item\' and \'translated_item\'.
+    Ensure there are no leading or trailing spaces in the key names.
+    The structure MUST strictly adhere to the \'Example_return_structure\' provided below."
   },
    ',ifelse(!is.null(example_translation),paste0("\"Example Translations\": ", example_translation,","),""),'
    ',ifelse(!is.null(example_target_text),paste0("\"Example text in target language\": ", example_target_text,","),""),'

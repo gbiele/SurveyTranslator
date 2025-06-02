@@ -70,7 +70,7 @@ It possible and encouraged to use examples of existing transkations from the sou
 ```{r prepare_TranslationItems_object}
 items <- prep_TranslationItems(
   data = items_data,
-  examples = here("zdata/Sample surveys translation.xlsx"),
+  example_trans = here("zdata/Sample surveys translation.xlsx"),
   source_language = "English",
   target_language = "Norwegian",
   domain = "Youth mental health",

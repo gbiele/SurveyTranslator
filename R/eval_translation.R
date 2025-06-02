@@ -25,7 +25,7 @@
 #' @importFrom jsonlite toJSON fromJSON
 #'
 #' @export
-eval_translations <- function(translated_items, back_translated_items, guidelines = default_backtrans_guidelines(), batch_size = 15, chat = NULL, api_key = NULL, llm_model = NULL, sleep = 1) {
+eval_translations <- function(translated_items, back_translated_items, guidelines = default_backtrans_guidelines(), batch_size = 15, chat = NULL, api_key = NULL, llm_model = NULL, sleep = 1, tmp_path = NULL, restart = FALSE) {
   if (!inherits(translated_items, "data.frame")) {
     stop("`translated_items` must be a data.frame or data.table.")
   }
@@ -60,7 +60,13 @@ eval_translations <- function(translated_items, back_translated_items, guideline
 
   if (is.null(chat)) chat <- .get_chat(model = llm_model, api_key = api_key)
 
-  for (i in 1:num_batches) {
+  first_idx = 1
+  if (restart == TRUE) {
+    load(tmp_path)
+    first_idx = i
+  }
+
+  for (i in first_idx:num_batches) {
     start_index <- (i - 1) * batch_size + 1
     end_index <- min(i * batch_size, num_rows) # Ensure we don't go out of bounds
 
@@ -91,6 +97,8 @@ eval_translations <- function(translated_items, back_translated_items, guideline
     if (i < num_batches) {
      Sys.sleep(sleep) # Sleep for 1 second
     }
+
+    save(all_parsed_responses,i, file = tmp_path)
   }
 
   # Combine all successfully parsed batch results

@@ -5,6 +5,8 @@
 #' @param llm_model Optional. LLM model name.
 #' @param api_key Optional. API key.
 #' @param sleep Seconds to pause between batches.
+#' @param tmp_path Path to a temporary file for saving progress. Defaults to "tmp.RDS".
+#' @param restart Logical. If TRUE, the function attempts to restart from a previously saved temporary file. Defaults to FALSE.
 #' @return A `data.table` of translated items.
 #' @export
 translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key = NULL, sleep = 7, tmp_path = "tmp.RDS", restart = FALSE) {
@@ -58,7 +60,8 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   # Parse the JSON response
   # Remove potential markdown code fences around JSON
   parsed_response = jsonlite::fromJSON(gsub("```json|```", "", translated_items_raw))
-
+  #quick fix
+  translated_items_raw = gsub(" translated_item", "translated_item", translated_items_raw)
   out = data.table::data.table(parsed_response)
   return(out)
 }
@@ -67,16 +70,17 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
 #' Batch process items by size
 #'
 #' @description
-#' A short description...
+#' Processes survey items in batches based on a specified batch size, communicating with an LLM for translation.
 #'
 #' @param items_obj An object containing data to process and the batch size. Must have a `data` element with a `Text` column and a `batch_size` element.
 #' @param bp A string template for the prompt.
 #' @param chat A chat object or argument passed to `.translate_llm`.
 #' @param sleep A single number representing the time to sleep between batches.
+#' @param tmp_path Path to a temporary file for saving progress.
+#' @param restart Logical. If TRUE, the function attempts to restart from a previously saved temporary file.
 #'
 #' @returns
-#' A data.table containing the results of processing items in batches.
-
+#' A `data.table` containing the results of processing items in batches.
 .batch_by_size <- function(items_obj, bp, chat, sleep, tmp_path, restart) {
   items_to_translate <- items_obj$data$Text
   batch_size <- items_obj$batch_size
@@ -104,18 +108,22 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   return(out)
 }
 
-#' Title
+#' Batch process items by variables
 #'
 #' @description
-#' A short description...
+#' Processes survey items in batches based on specified grouping variables, communicating with an LLM for translation.
 #'
-#' @param items_obj An object containing data and batching information.
+#' @param items_obj An object containing data and batching information (e.g., `batch_vars`, `topic_var`, `get_instr`, source/target languages, examples, guidelines, domain).
 #' @param bp A base prompt string.
+#' @param topic_var The variable in `items_obj$data` that represents the topic for dynamic prompt generation.
+#' @param example_translation The example translation text to be included in the prompt.
 #' @param chat Chat context for the LLM.
 #' @param sleep A numeric value for sleeping between batches.
+#' @param tmp_path Path to a temporary file for saving progress.
+#' @param restart Logical. If TRUE, the function attempts to restart from a previously saved temporary file.
 #'
 #' @returns
-#' A data.table containing the results for each batch.
+#' A `data.table` containing the results for each batch, including the original item details.
 #'
 #' @export
 .batch_by_vars <- function(items_obj, bp, topic_var, example_translation, chat, sleep, tmp_path, restart) {
@@ -163,7 +171,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
     } else {
       batch_items_to_translate <- merge(batches[batch_idx], items_to_translate, by = batch_vars)[, .(Instrument, Topic, Type, Text)]
     }
-
+    chat <- .get_chat()
     ITEMS <- paste0('"', paste(batch_items_to_translate$Text, collapse = '",\n "'), '"')
     current_prompt <- gsub("\\{ITEMS\\}",ITEMS,bp)
     batch_results <- .translate_llm(prompt = current_prompt, chat = chat)
