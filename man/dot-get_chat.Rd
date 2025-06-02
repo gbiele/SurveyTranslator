@@ -2,20 +2,21 @@
 % Please edit documentation in R/utils.R
 \name{.get_chat}
 \alias{.get_chat}
-\title{Auto-detect language model chat backend}
+\title{Get chat object}
 \usage{
-.get_chat(model = NULL, api_key = NULL)
+.get_chat(model = NULL, api_key = NULL, temperature = 0.05)
 }
 \arguments{
-\item{model}{LLM model name. Optional.}
+\item{model}{Optional. A model name.}
 
-\item{api_key}{Your LLM API key. Optional.}
+\item{api_key}{Optional. An API key.}
+
+\item{temperature}{Optional. A single numeric value for temperature.}
 }
 \value{
-An `ellmer` chat object.
+A chat object from the `ellmer` package. Will error if no API key environment
+variable (GOOGLE_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY) is found.
 }
 \description{
-Auto-detects and returns an `ellmer` chat object based on available
-  API keys (`GOOGLE_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`), prioritizing Google Gemini.
+A short description...
 }
-\keyword{internal}

@@ -8,11 +8,13 @@ eval_translations(
   translated_items,
   back_translated_items,
   guidelines = default_backtrans_guidelines(),
-  batch_size = Inf,
+  batch_size = 15,
   chat = NULL,
   api_key = NULL,
   llm_model = NULL,
-  sleep = 1
+  sleep = 1,
+  tmp_path = NULL,
+  restart = FALSE
 )
 }
 \arguments{

@@ -9,7 +9,9 @@ translate_survey(
   chat = NULL,
   llm_model = NULL,
   api_key = NULL,
-  sleep = 7
+  sleep = 7,
+  tmp_path = "tmp.RDS",
+  restart = FALSE
 )
 }
 \arguments{

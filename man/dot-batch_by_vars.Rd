@@ -4,7 +4,16 @@
 \alias{.batch_by_vars}
 \title{Title}
 \usage{
-.batch_by_vars(items_obj, bp, EXAMPLES, chat, sleep)
+.batch_by_vars(
+  items_obj,
+  bp,
+  topic_var,
+  example_translation,
+  chat,
+  sleep,
+  tmp_path,
+  restart
+)
 }
 \arguments{
 \item{items_obj}{An object containing data and batching information.}

@@ -8,6 +8,8 @@ base_prompt(
   source_language = NULL,
   target_language = NULL,
   guidelines = NULL,
+  example_translation = NULL,
+  example_target_text = NULL,
   domain = NULL,
   topic = NULL,
   instructions = NULL,
@@ -21,6 +23,10 @@ base_prompt(
 
 \item{guidelines}{Character vector or string. Optional additional translation guidelines. If `NULL`, a default set of instructions is used.
 If a custom value is provided, it is appended to the defaults.}
+
+\item{example_translation}{Charater: Json string with example translations.}
+
+\item{example_target_text}{Charater: String with example text in the target language.}
 
 \item{domain}{Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.}
 }

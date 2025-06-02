@@ -19,8 +19,7 @@ Imports:
   magrittr,
   readxl,
   ellmer,
-  jsonlite,
-  glue
+  jsonlite
 Suggests:
   quarto
 URL: https://github.com/gbiele/SurveyTranslator

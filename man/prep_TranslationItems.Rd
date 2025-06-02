@@ -8,12 +8,14 @@ prep_TranslationItems(
   data,
   source_language = "English",
   target_language = "Norwegian",
-  examples = NULL,
+  example_trans = NULL,
+  example_txt = NULL,
   reverse_transl = FALSE,
   domain = "Youth mental health",
   guidelines = NULL,
   batch_size = NULL,
   batch_vars = NULL,
+  topic_var = NULL,
   get_instr = TRUE
 )
 }
@@ -24,9 +26,11 @@ prep_TranslationItems(
 
 \item{target_language}{Target language (default: "Norwegian").}
 
-\item{examples}{Either a `data.frame` with columns `source_item`, `target_item`, or a file path to an Excel file.}
+\item{example_trans}{Example translations. Either a `data.frame` with columns `source_item`, `target_item`, or a file path to an Excel file.}
 
-\item{reverse_transl}{A logical determining if the source and target designationof the examples should be reversed (for back translation).}
+\item{example_txt}{Example text from the domain in the target language.}
+
+\item{reverse_transl}{A logical determining if the source and target designation of the examples should be reversed (for back translation).}
 
 \item{domain}{Domain or topic context (default: "Youth mental health").}
 

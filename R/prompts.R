@@ -5,6 +5,8 @@
 #'
 #' @param source_language Character. Source language (e.g., `"English"`).
 #' @param target_language Character. Target language (e.g., `"Norwegian"`).
+#' @param example_translation Charater: Json string with example translations.
+#' @param example_target_text Charater: String with example text in the target language.
 #' @param domain Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.
 #' @param guidelines Character vector or string. Optional additional translation guidelines. If `NULL`, a default set of instructions is used.
 #' If a custom value is provided, it is appended to the defaults.
@@ -19,6 +21,7 @@
 #' @keywords internal
 #' @export
 base_prompt = function(source_language = NULL, target_language = NULL, guidelines = NULL,
+                       example_translation = NULL, example_target_text = NULL,
                        domain = NULL, topic = NULL, instructions = NULL, responses = NULL)  {
 
 
@@ -28,29 +31,49 @@ base_prompt = function(source_language = NULL, target_language = NULL, guideline
     guidelines = paste0(default_guidelines,"\n",guidelines)
   }
 
+  if (!is.null(topic)) {
+    if (!all(substr(topic,1,1) == "\"",
+             substr(topic,nchar(topic),nchar(topic)) == "\"")) {
+      topic = paste0("\"",topic,"\"")
+    }
+  }
+
   out = paste0(
 '
-{{
+{
   "task": "Translate a questionnaire",
-  "instructions": {{
-    "Role": "You are an expert translator specializing in questionnaires and surveys for mental health and related fields.",
+  "instructions": {
+    "Role": "You are an expert translator specializing in questionnaires, surveys
+    and interventions for mental health and related fields.",
     "Source language": "', source_language, '",
     "Target language": "', target_language, '",
     "Tone": "neutral and clear",
     "Domain": "', domain, '",
-    ',ifelse(!is.null(topic),paste0("Item-topic: ", topic,","),""),'
-    ',ifelse(!is.null(instructions),paste0("Instructions: ", instructions,","),""),'
-    ',ifelse(!is.null(responses),paste0("Response options: ", responses,","),""),'
+    ',ifelse(!is.null(topic),paste0("\"Item-topic\": ", topic,","),""),'
+    ',ifelse(!is.null(instructions),paste0("\"Instructions\": ", instructions,","),""),'
+    ',ifelse(!is.null(responses),paste0("\"Response options\": ", responses,","),""),'
     "Guidelines": [',guidelines ,'],
     "Output format instruction": "Your output should be a list of objects,
-    where each object contains two keys: \'original_item\' holding the original text,
-    and \'translated_item\' holding the translation. Mirror the structure shown in the \'examples\'."
-  }},
-  "examples": {EXAMPLES},
+    each containing two keys: \'original_item\' for the original text and
+    \'translated_item\' for its Norwegian translation, as shown in the
+    \'Example_return_structure\'."
+  },
+   ',ifelse(!is.null(example_translation),paste0("\"Example Translations\": ", example_translation,","),""),'
+   ',ifelse(!is.null(example_target_text),paste0("\"Example text in target language\": ", example_target_text,","),""),'
   "Items to translate": [
     {ITEMS}
+  ],
+  "Example_return_structure": [
+  {
+    "original_item": "Have you felt fit and well?",
+    "translated_item": "Har du følt deg frisk og sprek?"
+  },
+  {
+    "original_item": "Have you felt full of energy?",
+    "translated_item": "Har du følt deg full av energi?"
+  }
   ]
-}}
+}
 ')
   return(out)
 }
@@ -120,7 +143,7 @@ default_guidelines = function() {
   guidelines =
     '
       "Ensure each item is translated accurately and retains its original meaning.",
-      "When an item topic, instructions, or response options are given, translate these first."
+      "When an item topic, instructions, or response options are given, translate these first.",
       "Maintain consistency in terminology and phrasing across all items.",
       "Translate questions as questions, and statements as statements.",
       "If an item contains a placeholder like \'[Variable]\', keep the placeholder as is."

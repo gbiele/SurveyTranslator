@@ -1,3 +1,6 @@
+api_key = "AIzaSyBuh-UYHocYhpqF06ks5LBWqu-eAAzZRpk"
+m = "gemini-2.0-flash-lite"
+
 api_key = NULL
 m = NULL
 
@@ -8,11 +11,12 @@ source_items = data.table(read_xlsx(here::here("zdata/Translation data MENTOR.xl
 
 items = prep_TranslationItems(
    data = source_items,
-   examples = here::here("zdata/Sample surveys translation.xlsx"),
+   #example_trans = here::here("zdata/Sample surveys translation.xlsx"),
    source_language = "English",
    target_language = "Norwegian",
    domain = "Youth mental health",
-   batch_vars =  c("Instrument","Topic")
+   batch_vars =  c("Instrument","Topic"),
+   topic_var = "Topic"
 )
 
 

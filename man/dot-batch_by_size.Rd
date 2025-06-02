@@ -4,7 +4,7 @@
 \alias{.batch_by_size}
 \title{Batch process items by size}
 \usage{
-.batch_by_size(items_obj, bp, chat, sleep)
+.batch_by_size(items_obj, bp, chat, sleep, tmp_path, restart)
 }
 \arguments{
 \item{items_obj}{An object containing data to process and the batch size. Must have a `data` element with a `Text` column and a `batch_size` element.}
