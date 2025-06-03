@@ -21,6 +21,8 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   bp <- base_prompt(
     source_language = items_obj$source_language,
     target_language = items_obj$target_language,
+    task = items_obj$task,
+    role = items_obj$role,
     example_translation = items_obj$example_translations,
     example_target_text  = items_obj$example_target_text,
     domain = items_obj$domain,
@@ -135,6 +137,8 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   get_instr <- items_obj$get_instr
   source_language <- items_obj$source_language
   target_language <- items_obj$target_language
+  llm_task = items_obj$task
+  llm_role = items_obj$role
   example_translation <- items_obj$example_translations
   example_target_text <- items_obj$example_target_text
   guidelines <- items_obj$guidelines
@@ -155,6 +159,8 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
     bp <- base_prompt(
       source_language = source_language,
       target_language = target_language,
+      task = llm_task,
+      role = llm_role,
       example_translation = example_translation,
       example_target_text = example_target_text,
       topic = topic,

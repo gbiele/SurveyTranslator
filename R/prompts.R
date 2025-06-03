@@ -5,6 +5,8 @@
 #'
 #' @param source_language Character. Source language (e.g., `"English"`).
 #' @param target_language Character. Target language (e.g., `"Norwegian"`).
+#' @param task Character. Task for the LLM.
+#' @param role Character. Role for the LLM.
 #' @param example_translation Charater: Json string with example translations.
 #' @param example_target_text Charater: String with example text in the target language.
 #' @param domain Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.
@@ -20,7 +22,9 @@
 #'
 #' @keywords internal
 #' @export
-base_prompt = function(source_language = NULL, target_language = NULL, guidelines = NULL,
+base_prompt = function(source_language = NULL, target_language = NULL,
+                       task = NULL, role = NULL,
+                       guidelines = NULL,
                        example_translation = NULL, example_target_text = NULL,
                        domain = NULL, topic = NULL, instructions = NULL, responses = NULL)  {
 
@@ -28,7 +32,7 @@ base_prompt = function(source_language = NULL, target_language = NULL, guideline
   if (is.null(guidelines)){
     guidelines = default_guidelines()
   } else {
-    guidelines = paste0(default_guidelines,"\n",guidelines)
+    guidelines = paste0(default_guidelines(),"\n",guidelines)
   }
 
   if (!is.null(topic)) {
@@ -41,10 +45,9 @@ base_prompt = function(source_language = NULL, target_language = NULL, guideline
   out = paste0(
 '
 {
-  "task": "Translate a questionnaire",
+  "task": "',task,'",
   "instructions": {
-    "Role": "You are an expert translator specializing in questionnaires, surveys
-    and interventions for mental health and related fields.",
+    "Role": "',role,'.",
     "Source language": "', source_language, '",
     "Target language": "', target_language, '",
     "Tone": "neutral and clear",
@@ -164,7 +167,6 @@ default_guidelines = function() {
 default_backtrans_guidelines = function() {
   guidelines =
 '
-      "You are an expert linguistic evaluator specializing in survey translation quality."
        "Your task is to evaluate the semantic and tonal equivalence between original survey statements and their back-translated versions."
        "Be relatively strict in your evaluation, nuances can matter."
 '

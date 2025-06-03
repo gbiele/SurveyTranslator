@@ -29,6 +29,10 @@ If a custom value is provided, it is appended to the defaults.}
 \item{example_target_text}{Charater: String with example text in the target language.}
 
 \item{domain}{Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.}
+
+\item{task}{Character. Task for the LLM.}
+
+\item{role}{Character. Role for the LLM.}
 }
 \value{
 A character string containing a complete JSON prompt with placeholders `{EXAMPLES}` and `{ITEMS}` to be filled in later.

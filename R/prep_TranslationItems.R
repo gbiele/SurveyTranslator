@@ -4,19 +4,24 @@
 #' @param data A `data.table`, `data.frame`, a path to a text file (1 item per line), or an Excel file. Must result in a table with a `Text` column.
 #' @param source_language Source language (default: "English").
 #' @param target_language Target language (default: "Norwegian").
+#' @param task Character. Task for the LLM.
+#' @param role Character. Role for the LLM.
 #' @param example_trans Example translations. Either a `data.frame` with columns `source_item`, `target_item`, or a file path to an Excel file.
 #' @param example_txt Example text from the domain in the target language.
-#' @param reverse_transl A logical determining if the source and target designation of the examples should be reversed (for back translation).
+#' @param reverse_transl Logical. If `TRUE`, reverses source/target designation for examples (for back-translation).
 #' @param domain Domain or topic context (default: "Youth mental health").
 #' @param guidelines Optional character vector of translation guidelines.
 #' @param batch_size Optional integer for fixed-size batching.
 #' @param batch_vars Optional character vector for variable-based batching.
-#' @param get_instr Logical. Include instructions/responses (default: TRUE).
+#' @param topic_var Character. Specifies which variable from `batch_vars` should be used as the topic for the LLM prompt. Required if `batch_vars` is used.
+#' @param get_instr Logical. Include instructions/responses (default: `TRUE`).
 #' @return A `TranslationItems` object.
 #' @export
 prep_TranslationItems <- function(data,
                                   source_language = "English",
                                   target_language = "Norwegian",
+                                  task = "Translate a questionnaire",
+                                  role = "You are an expert translator specializing in questionnaires, surveys and interventions for mental health and related fields.",
                                   example_trans = NULL,
                                   example_txt = NULL,
                                   reverse_transl = FALSE,
@@ -62,6 +67,8 @@ prep_TranslationItems <- function(data,
       data = data,
       source_language = source_language,
       target_language = target_language,
+      task = task,
+      role = role,
       domain = domain,
       guidelines = guidelines,
       batch_size = batch_size,

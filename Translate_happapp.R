@@ -17,6 +17,9 @@ source("zdata/mindfullness_excersises.R")
 
 items = prep_TranslationItems(
    data = source_items,
+   task = "Translate essential App text (e.g., instructions, terms, UI, error messages) for a mindfulness self-help application. Maintain precision for technical and legal text",
+   role = "You are a highly experienced and meticulous translator specializing in digital mental health interventions and technical application content",
+   guidelines = "Ensure all translations are accurate and retain original meaning, especially for technical or legal phrases.",
    example_txt = ex_txt_json,
    source_language = "English",
    target_language = "Norwegian",
@@ -36,6 +39,9 @@ data_back_translation =
   translated_items[, .(Instrument,Topic,translated_item,Type)] %>%
   setnames("translated_item","Text")
 
+data_back_translation[grep('"', Text), Text := gsub('"','',Text)]
+data_back_translation[grep('“|”', Text), Text := gsub('“|”','',Text)]
+
 items_back_translation = prep_TranslationItems(
   data = data_back_translation,
   reverse_transl = TRUE,
@@ -49,14 +55,32 @@ items_back_translation = prep_TranslationItems(
 
 
 back_translated_items =
-  translate_survey(items_back_translation, sleep = 1, llm_model = m, api_key = api_key, tmp_path = "tmp_back_no_en.Rdata")
+  translate_survey(items_back_translation, sleep = 1, llm_model = m, api_key = api_key, tmp_path = "tmp_back_no_en.Rdata", restart = FALSE)
 
 saveRDS(back_translated_items,file = "happapp_back_no_en.RDS")
 
 evaluation =
-  eval_translations(translated_items, back_translated_items)
+  eval_translations(translated_items, back_translated_items, tmp_path = "tmp_eval.Rdata")
 
 saveRDS(evaluation,file = "happapp_evaluation.RDS")
 
 
 evaluation[evaluation != "OK"]
+
+
+ft <- flextable(evaluation) |>
+  width(j = "original",         width = 3) |>
+  width(j = "translation",      width = 3) |>
+  width(j = "back_translation", width = 3) |>
+  width(j = "evaluation",       width = 1.5) |>
+  set_table_properties(layout = "fixed", width = 1)
+
+default_sect_properties <- prop_section(
+  page_size = page_size(orient = "landscape"), type = "continuous",
+  page_margins = page_mar(bottom = .75, top = .75, right = .75, left = .75)
+)
+
+doc <- read_docx() |>
+  body_set_default_section(default_sect_properties) |>
+  body_add_flextable(ft)
+print(doc, target = here("translated_items.docx"))

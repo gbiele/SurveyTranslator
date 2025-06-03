@@ -8,6 +8,9 @@ prep_TranslationItems(
   data,
   source_language = "English",
   target_language = "Norwegian",
+  task = "Translate a questionnaire",
+  role =
+    "You are an expert translator specializing in questionnaires, surveys and interventions for mental health and related fields.",
   example_trans = NULL,
   example_txt = NULL,
   reverse_transl = FALSE,
@@ -26,11 +29,15 @@ prep_TranslationItems(
 
 \item{target_language}{Target language (default: "Norwegian").}
 
+\item{task}{Character. Task for the LLM.}
+
+\item{role}{Character. Role for the LLM.}
+
 \item{example_trans}{Example translations. Either a `data.frame` with columns `source_item`, `target_item`, or a file path to an Excel file.}
 
 \item{example_txt}{Example text from the domain in the target language.}
 
-\item{reverse_transl}{A logical determining if the source and target designation of the examples should be reversed (for back translation).}
+\item{reverse_transl}{Logical. If `TRUE`, reverses source/target designation for examples (for back-translation).}
 
 \item{domain}{Domain or topic context (default: "Youth mental health").}
 
@@ -40,7 +47,9 @@ prep_TranslationItems(
 
 \item{batch_vars}{Optional character vector for variable-based batching.}
 
-\item{get_instr}{Logical. Include instructions/responses (default: TRUE).}
+\item{topic_var}{Character. Specifies which variable from `batch_vars` should be used as the topic for the LLM prompt. Required if `batch_vars` is used.}
+
+\item{get_instr}{Logical. Include instructions/responses (default: `TRUE`).}
 }
 \value{
 A `TranslationItems` object.
