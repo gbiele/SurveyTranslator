@@ -2,7 +2,7 @@
 % Please edit documentation in R/translate_survey.R
 \name{.batch_by_vars}
 \alias{.batch_by_vars}
-\title{Title}
+\title{Batch process items by variables}
 \usage{
 .batch_by_vars(
   items_obj,
@@ -16,17 +16,25 @@
 )
 }
 \arguments{
-\item{items_obj}{An object containing data and batching information.}
+\item{items_obj}{An object containing data and batching information (e.g., `batch_vars`, `topic_var`, `get_instr`, source/target languages, examples, guidelines, domain).}
 
 \item{bp}{A base prompt string.}
+
+\item{topic_var}{The variable in `items_obj$data` that represents the topic for dynamic prompt generation.}
+
+\item{example_translation}{The example translation text to be included in the prompt.}
 
 \item{chat}{Chat context for the LLM.}
 
 \item{sleep}{A numeric value for sleeping between batches.}
+
+\item{tmp_path}{Path to a temporary file for saving progress.}
+
+\item{restart}{Logical. If TRUE, the function attempts to restart from a previously saved temporary file.}
 }
 \value{
-A data.table containing the results for each batch.
+A `data.table` containing the results for each batch, including the original item details.
 }
 \description{
-A short description...
+Processes survey items in batches based on specified grouping variables, communicating with an LLM for translation.
 }

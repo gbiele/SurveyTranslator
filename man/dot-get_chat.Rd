@@ -2,21 +2,29 @@
 % Please edit documentation in R/utils.R
 \name{.get_chat}
 \alias{.get_chat}
-\title{Get chat object}
+\title{Get ellmer chat object}
 \usage{
-.get_chat(model = NULL, api_key = NULL, temperature = 0.05)
+.get_chat(
+  model = NULL,
+  api_key = NULL,
+  params = list(temperature = 0.05, max_tokens = 10000)
+)
 }
 \arguments{
-\item{model}{Optional. A model name.}
+\item{model}{Optional. A model identifier.}
 
 \item{api_key}{Optional. An API key.}
 
-\item{temperature}{Optional. A single numeric value for temperature.}
+\item{params}{Optional. A list of parameters for the LLM API. See \code{\link[ellmer]{params}}}
 }
 \value{
 A chat object from the `ellmer` package. Will error if no API key environment
 variable (GOOGLE_API_KEY, OPENAI_API_KEY, or ANTHROPIC_API_KEY) is found.
 }
 \description{
-A short description...
+Initializes a chat object using the `ellmer` package, automatically detecting and
+prioritizing available API keys for Google Gemini, OpenAI, or Anthropic.
+}
+\seealso{
+\code{\link[ellmer]{chat_google_gemini}}, \code{\link[ellmer]{chat_openai}}, \code{\link[ellmer]{chat_anthropic}}
 }

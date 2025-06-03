@@ -57,11 +57,13 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   # Submit the prompt to the LLM
   translated_items_raw = chat$chat(prompt)
 
+  #quick fix
+  translated_items_raw = gsub(" translated_item", "translated_item", translated_items_raw)
+
   # Parse the JSON response
   # Remove potential markdown code fences around JSON
   parsed_response = jsonlite::fromJSON(gsub("```json|```", "", translated_items_raw))
-  #quick fix
-  translated_items_raw = gsub(" translated_item", "translated_item", translated_items_raw)
+
   out = data.table::data.table(parsed_response)
   return(out)
 }

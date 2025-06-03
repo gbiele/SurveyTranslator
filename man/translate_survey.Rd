@@ -24,6 +24,10 @@ translate_survey(
 \item{api_key}{Optional. API key.}
 
 \item{sleep}{Seconds to pause between batches.}
+
+\item{tmp_path}{Path to a temporary file for saving progress. Defaults to "tmp.RDS".}
+
+\item{restart}{Logical. If TRUE, the function attempts to restart from a previously saved temporary file. Defaults to FALSE.}
 }
 \value{
 A `data.table` of translated items.

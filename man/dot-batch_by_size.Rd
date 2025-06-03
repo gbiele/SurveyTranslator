@@ -14,10 +14,14 @@
 \item{chat}{A chat object or argument passed to `.translate_llm`.}
 
 \item{sleep}{A single number representing the time to sleep between batches.}
+
+\item{tmp_path}{Path to a temporary file for saving progress.}
+
+\item{restart}{Logical. If TRUE, the function attempts to restart from a previously saved temporary file.}
 }
 \value{
-A data.table containing the results of processing items in batches.
+A `data.table` containing the results of processing items in batches.
 }
 \description{
-A short description...
+Processes survey items in batches based on a specified batch size, communicating with an LLM for translation.
 }

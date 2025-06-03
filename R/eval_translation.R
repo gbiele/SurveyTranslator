@@ -1,31 +1,27 @@
 #' @title Evaluate Survey Translations with an LLM
 #'
-#' @description Evaluates translation and back-translation equivalence (semantic and tonal) using an LLM.
-#'   Handles data preparation, prompt generation, API call, and response parsing.
+#' @description Evaluates translation and back-translation equivalence (semantic and tonal) using an LLM. Handles data preparation, prompt generation, API call, and response parsing.
 #'
-#' @param translated_items A `data.table` or `data.frame` with original ('Text')
-#'   and translated ('translated_item') survey texts.
-#' @param back_translated_items A `data.table` or `data.frame` with back-translated
-#'   texts ('translated_item').
-#' @param guidelines a string with the description of the evaluation is performed.
-#' Default is `default_backtrans_guidelines()`.by setting own guidelines one can
-#' influence emphasis (e.g. semantics, tone) or strictness of the evaluation.
-#' @param chat LLM chat client object. If `NULL`, initialized using `llm_model` and `api_key`.
+#' @param translated_items A `data.table` or `data.frame` with original ('Text') and translated ('translated_item') survey texts.
+#' @param back_translated_items A `data.table` or `data.frame` with back-translated texts ('translated_item').
+#' @param guidelines A string describing the evaluation. Defaults to `default_backtrans_guidelines()`. Custom guidelines influence evaluation emphasis (e.g., semantics, tone) or strictness.
+#' @param batch_size Numeric. Number of items to process in each batch. Defaults to 15.
+#' @param chat An `ellmer` chat client object. If `NULL`, initialized using `llm_model` and `api_key`.
 #' @param api_key Your LLM API key. Required if `chat` is `NULL`.
 #' @param llm_model The LLM model name.
+#' @param sleep Numeric. Seconds to pause between batches. Defaults to 1.
+#' @param tmp_path Character. Path to a temporary file for saving progress. Defaults to "tmp.Rdata".
+#' @param restart Logical. If `TRUE`, attempts to restart from progress saved in `tmp_path`. Defaults to `FALSE`.
 #'
-#' @return A `data.table` of evaluation results from the LLM, or `NULL` on error.
+#' @return A `data.table` of evaluation results from the LLM, or an empty `data.table` if no data was successfully parsed.
 #'
-#' @details Requires `data.table` and `jsonlite`. Assumes `translated_items` and
-#'   `back_translated_items` are row-aligned. Assumes `prompt_evaluation()` is
-#'   defined and correctly generates an LLM prompt from the round-trip JSON data.
-#'   The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
+#' @details Requires `data.table` and `jsonlite`. Assumes `translated_items` and `back_translated_items` are row-aligned. Assumes `prompt_evaluation()` is defined and correctly generates an LLM prompt from the round-trip JSON data. The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
 #'
 #' @importFrom data.table data.table
 #' @importFrom jsonlite toJSON fromJSON
 #'
 #' @export
-eval_translations <- function(translated_items, back_translated_items, guidelines = default_backtrans_guidelines(), batch_size = 15, chat = NULL, api_key = NULL, llm_model = NULL, sleep = 1, tmp_path = NULL, restart = FALSE) {
+eval_translations <- function(translated_items, back_translated_items, guidelines = default_backtrans_guidelines(), batch_size = 15, chat = NULL, api_key = NULL, llm_model = NULL, sleep = 1, tmp_path = "tmp.Rdata", restart = FALSE) {
   if (!inherits(translated_items, "data.frame")) {
     stop("`translated_items` must be a data.frame or data.table.")
   }
@@ -95,7 +91,7 @@ eval_translations <- function(translated_items, back_translated_items, guideline
 
 
     if (i < num_batches) {
-     Sys.sleep(sleep) # Sleep for 1 second
+      Sys.sleep(sleep) # Sleep for 1 second
     }
 
     save(all_parsed_responses,i, file = tmp_path)

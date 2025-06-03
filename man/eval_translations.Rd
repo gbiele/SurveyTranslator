@@ -13,37 +13,37 @@ eval_translations(
   api_key = NULL,
   llm_model = NULL,
   sleep = 1,
-  tmp_path = NULL,
+  tmp_path = "tmp.Rdata",
   restart = FALSE
 )
 }
 \arguments{
-\item{translated_items}{A `data.table` or `data.frame` with original ('Text')
-and translated ('translated_item') survey texts.}
+\item{translated_items}{A `data.table` or `data.frame` with original ('Text') and translated ('translated_item') survey texts.}
 
-\item{back_translated_items}{A `data.table` or `data.frame` with back-translated
-texts ('translated_item').}
+\item{back_translated_items}{A `data.table` or `data.frame` with back-translated texts ('translated_item').}
 
-\item{guidelines}{a string with the description of the evaluation is performed.
-Default is `default_backtrans_guidelines()`.by setting own guidelines one can
-influence emphasis (e.g. semantics, tone) or strictness of the evaluation.}
+\item{guidelines}{A string describing the evaluation. Defaults to `default_backtrans_guidelines()`. Custom guidelines influence evaluation emphasis (e.g., semantics, tone) or strictness.}
 
-\item{chat}{LLM chat client object. If `NULL`, initialized using `llm_model` and `api_key`.}
+\item{batch_size}{Numeric. Number of items to process in each batch. Defaults to 15.}
+
+\item{chat}{An `ellmer` chat client object. If `NULL`, initialized using `llm_model` and `api_key`.}
 
 \item{api_key}{Your LLM API key. Required if `chat` is `NULL`.}
 
 \item{llm_model}{The LLM model name.}
+
+\item{sleep}{Numeric. Seconds to pause between batches. Defaults to 1.}
+
+\item{tmp_path}{Character. Path to a temporary file for saving progress. Defaults to "tmp.Rdata".}
+
+\item{restart}{Logical. If `TRUE`, attempts to restart from progress saved in `tmp_path`. Defaults to `FALSE`.}
 }
 \value{
-A `data.table` of evaluation results from the LLM, or `NULL` on error.
+A `data.table` of evaluation results from the LLM, or an empty `data.table` if no data was successfully parsed.
 }
 \description{
-Evaluates translation and back-translation equivalence (semantic and tonal) using an LLM.
-  Handles data preparation, prompt generation, API call, and response parsing.
+Evaluates translation and back-translation equivalence (semantic and tonal) using an LLM. Handles data preparation, prompt generation, API call, and response parsing.
 }
 \details{
-Requires `data.table` and `jsonlite`. Assumes `translated_items` and
-  `back_translated_items` are row-aligned. Assumes `prompt_evaluation()` is
-  defined and correctly generates an LLM prompt from the round-trip JSON data.
-  The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
+Requires `data.table` and `jsonlite`. Assumes `translated_items` and `back_translated_items` are row-aligned. Assumes `prompt_evaluation()` is defined and correctly generates an LLM prompt from the round-trip JSON data. The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
 }
