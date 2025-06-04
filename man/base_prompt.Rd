@@ -7,6 +7,8 @@
 base_prompt(
   source_language = NULL,
   target_language = NULL,
+  task = NULL,
+  role = NULL,
   guidelines = NULL,
   example_translation = NULL,
   example_target_text = NULL,
@@ -21,6 +23,10 @@ base_prompt(
 
 \item{target_language}{Character. Target language (e.g., `"Norwegian"`).}
 
+\item{task}{Character. Task for the LLM.}
+
+\item{role}{Character. Role for the LLM.}
+
 \item{guidelines}{Character vector or string. Optional additional translation guidelines. If `NULL`, a default set of instructions is used.
 If a custom value is provided, it is appended to the defaults.}
 
@@ -29,10 +35,6 @@ If a custom value is provided, it is appended to the defaults.}
 \item{example_target_text}{Charater: String with example text in the target language.}
 
 \item{domain}{Character. Subject domain of the questionnaire (e.g., `"Youth mental health"`). Helps tailor the style and terminology.}
-
-\item{task}{Character. Task for the LLM.}
-
-\item{role}{Character. Role for the LLM.}
 }
 \value{
 A character string containing a complete JSON prompt with placeholders `{EXAMPLES}` and `{ITEMS}` to be filled in later.
