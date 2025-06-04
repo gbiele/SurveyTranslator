@@ -5,3 +5,5 @@
 zdata
 *.RDS
 *.Rdata
+*.docx
+*.xlsx
