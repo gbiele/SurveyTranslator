@@ -5,7 +5,7 @@
 #' @param source_language Source language (default: "English").
 #' @param target_language Target language (default: "Norwegian").
 #' @param task Character. Task for the LLM.
-#' @param role Character. Role for the LLM.
+#' @param role Character. Role for the LLM. Default: "You are an expert translator specializing in questionnaires, surveys and interventions for mental health and related fields."
 #' @param example_trans Example translations. Either a `data.frame` with columns `source_item`, `target_item`, or a file path to an Excel file.
 #' @param example_txt Example text from the domain in the target language.
 #' @param reverse_transl Logical. If `TRUE`, reverses source/target designation for examples (for back-translation).
@@ -21,7 +21,7 @@ prep_TranslationItems <- function(data,
                                   source_language = "English",
                                   target_language = "Norwegian",
                                   task = "Translate a questionnaire",
-                                  role = "You are an expert translator specializing in questionnaires, surveys and interventions for mental health and related fields.",
+                                  role = NULL,
                                   example_trans = NULL,
                                   example_txt = NULL,
                                   reverse_transl = FALSE,
@@ -31,6 +31,8 @@ prep_TranslationItems <- function(data,
                                   batch_vars = NULL,
                                   topic_var = NULL,
                                   get_instr = TRUE) {
+  if (is.null(role))
+    role = "You are an expert translator specializing in questionnaires, surveys and interventions for mental health and related fields."
   if (is.character(data) && file.exists(data)) {
     ext <- tools::file_ext(data)
     if (ext %in% c("xlsx", "xls")) {

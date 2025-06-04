@@ -9,8 +9,7 @@ prep_TranslationItems(
   source_language = "English",
   target_language = "Norwegian",
   task = "Translate a questionnaire",
-  role =
-    "You are an expert translator specializing in questionnaires, surveys and interventions for mental health and related fields.",
+  role = NULL,
   example_trans = NULL,
   example_txt = NULL,
   reverse_transl = FALSE,
@@ -31,7 +30,7 @@ prep_TranslationItems(
 
 \item{task}{Character. Task for the LLM.}
 
-\item{role}{Character. Role for the LLM.}
+\item{role}{Character. Role for the LLM. Default: "You are an expert translator specializing in questionnaires, surveys and interventions for mental health and related fields."}
 
 \item{example_trans}{Example translations. Either a `data.frame` with columns `source_item`, `target_item`, or a file path to an Excel file.}
 
