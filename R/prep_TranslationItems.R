@@ -60,7 +60,7 @@ prep_TranslationItems <- function(data,
     }
   }
 
-
+  data[, id := 1:nrow(data)]
 
   structure(
     list(
