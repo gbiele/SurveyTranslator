@@ -91,7 +91,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   num_batches <- ceiling(length(items_to_translate) / batch_size)
   out <- data.table::data.table()
 
-  first_idx = 1
+  batch_idx = first_idx = 1
   if (restart == TRUE) {
     load(tmp_path)
     first_idx = batch_idx
@@ -148,7 +148,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   out <- data.table::data.table()
   num_batches <- nrow(batches)
 
-  first_idx = 1
+  batch_idx = first_idx = 1
   if (restart == TRUE) {
     load(tmp_path)
     first_idx = batch_idx

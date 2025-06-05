@@ -28,7 +28,7 @@ get_examples_json <- function(input, reverse_transl = FALSE) {
   }
 
   if (reverse_transl) {
-    setnames(dt, old = c("source_item", "target_item"), new = c("target_item", "source_item"))
+    data.table::setnames(dt, old = c("source_item", "target_item"), new = c("target_item", "source_item"))
   }
 
   jsonlite::toJSON(dt[, .(source_item, target_item)], pretty = TRUE)

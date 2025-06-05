@@ -56,7 +56,7 @@ eval_translations <- function(translated_items, back_translated_items, guideline
 
   if (is.null(chat)) chat <- .get_chat(model = llm_model, api_key = api_key)
 
-  first_idx = 1
+  i = first_idx = 1
   if (restart == TRUE) {
     load(tmp_path)
     first_idx = i

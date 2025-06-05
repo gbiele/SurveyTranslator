@@ -1,6 +1,3 @@
-api_key = "AIzaSyBuh-UYHocYhpqF06ks5LBWqu-eAAzZRpk"
-m = "gemini-2.0-flash-lite"
-
 api_key = NULL
 m = NULL
 
@@ -9,17 +6,25 @@ library(data.table)
 library(readxl)
 library(magrittr)
 library(jsonlite)
+library(flextable)
+library(officer)
+library(here)
+
 source_items = data.table(read_xlsx(here::here("zdata/Translation data_happ_app_MENTOR.xlsx")))
 #source_items = source_items[grepl("Terms",Instrument)]
 source_items = source_items[!grepl("Don|don",Comments_from_Helga)]
 source_items = source_items[, .(Text,Instrument, Topic, Type)] %>% unique()
 source("zdata/mindfullness_excersises.R")
 
+translation_task = "Translate essential App text (e.g., instructions, terms, UI, error messages) for a mindfulness self-help application. Maintain precision for technical and legal text"
+translation_role = "You are a highly experienced and meticulous translator specializing in digital mental health interventions and technical application content"
+extra_guidelines = "Ensure all translations are accurate and retain original meaning, especially for technical or legal phrases."
+
 items = prep_TranslationItems(
    data = source_items,
-   task = "Translate essential App text (e.g., instructions, terms, UI, error messages) for a mindfulness self-help application. Maintain precision for technical and legal text",
-   role = "You are a highly experienced and meticulous translator specializing in digital mental health interventions and technical application content",
-   guidelines = "Ensure all translations are accurate and retain original meaning, especially for technical or legal phrases.",
+   task = translation_task,
+   role = translation_role,
+   guidelines = extra_guidelines,
    example_txt = ex_txt_json,
    source_language = "English",
    target_language = "Norwegian",
@@ -44,6 +49,9 @@ data_back_translation[grep('“|”', Text), Text := gsub('“|”','',Text)]
 
 items_back_translation = prep_TranslationItems(
   data = data_back_translation,
+  task = translation_task,
+  role = translation_role,
+  guidelines = extra_guidelines,
   reverse_transl = TRUE,
   source_language = "Norwegian",
   target_language = "English",
@@ -83,4 +91,7 @@ default_sect_properties <- prop_section(
 doc <- read_docx() |>
   body_set_default_section(default_sect_properties) |>
   body_add_flextable(ft)
-print(doc, target = here("translated_items.docx"))
+print(doc, target = here("happ_app_translation_evaluation.docx"))
+
+
+writexl::write_xlsx(evaluation, path = here("happ_app_translation_evaluation.xlsx"))
