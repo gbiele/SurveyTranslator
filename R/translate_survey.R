@@ -31,7 +31,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
 
   if (is.null(items_obj$batch_size) && is.null(items_obj$batch_vars)) {
     ITEMS <- paste0('"', paste(items_obj$data$Text, collapse = '",\n "'), '"')
-    return(.translate_llm(prompt, chat))
+    return(.llm_response(prompt, chat))
   }
 
   if (!is.null(items_obj$batch_size)) {
@@ -55,7 +55,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
 #' @importFrom jsonlite fromJSON
 #' @importFrom data.table data.table
 #' @noRd
-.translate_llm = function(prompt, chat) {
+.llm_response = function(prompt, chat) {
   # Submit the prompt to the LLM
   translated_items_raw = chat$chat(prompt)
 
@@ -93,7 +93,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
 #'
 #' @param items_obj An object containing data to process and the batch size. Must have a `data` element with a `Text` column and a `batch_size` element.
 #' @param bp A string template for the prompt.
-#' @param chat A chat object or argument passed to `.translate_llm`.
+#' @param chat A chat object or argument passed to `.llm_response`.
 #' @param sleep A single number representing the time to sleep between batches.
 #' @param tmp_path Path to a temporary file for saving progress.
 #' @param restart Logical. If TRUE, the function attempts to restart from a previously saved temporary file.
@@ -118,7 +118,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
     batch_items <- items_to_translate[start_idx:end_idx]
     ITEMS <- paste0('"', paste(batch_items, collapse = '",\n "'), '"')
     current_prompt <- gsub("\\{ITEMS\\}",ITEMS,bp)
-    batch_results <- .translate_llm(prompt = current_prompt, chat = chat)
+    batch_results <- .llm_response(prompt = current_prompt, chat = chat)
     out <- rbind(out, batch_results)
     if (num_batches > 1 && batch_idx < num_batches) Sys.sleep(sleep)
     cat("Processed batch", batch_idx, "of", num_batches, "\n")
@@ -197,7 +197,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
     chat <- .get_chat()
     ITEMS <- paste0('"', paste(batch_items_to_translate$Text, collapse = '",\n "'), '"')
     current_prompt <- gsub("\\{ITEMS\\}",ITEMS,bp)
-    batch_results <- .translate_llm(prompt = current_prompt, chat = chat)
+    batch_results <- .llm_response(prompt = current_prompt, chat = chat)
     if (num_batches > 1 && batch_idx < num_batches) Sys.sleep(sleep)
     if (nrow(batch_results) != nrow(batch_items_to_translate)) {
       stop("Number of returned translation is not equal not number of translation items.")

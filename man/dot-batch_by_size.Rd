@@ -11,7 +11,7 @@
 
 \item{bp}{A string template for the prompt.}
 
-\item{chat}{A chat object or argument passed to `.translate_llm`.}
+\item{chat}{A chat object or argument passed to `.llm_response`.}
 
 \item{sleep}{A single number representing the time to sleep between batches.}
 

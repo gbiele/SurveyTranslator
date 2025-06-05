@@ -17,7 +17,7 @@
 #'
 #' @details Requires `data.table` and `jsonlite`. Assumes `translated_items` and `back_translated_items` are row-aligned. Assumes `prompt_evaluation()` is defined and correctly generates an LLM prompt from the round-trip JSON data. The LLM response should be JSON, optionally markdown-wrapped (e.g., ```json...```).
 #'
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table setnames
 #' @importFrom jsonlite toJSON fromJSON
 #'
 #' @export
@@ -49,6 +49,13 @@ eval_translations <- function(translated_items, back_translated_items, guideline
     back_translation = back_translated_items$translated_item
   )
 
+  round_trip <-
+    merge(setnames(translated_items[, .(Text,translated_item,id)],
+                   c("Text","translated_item"),c("original","translation")),
+          setnames(back_translated_items[, .(translated_item,id)],
+                   c("translated_item"),c("back_translation")),
+          by = "id")
+
   num_rows <- nrow(round_trip)
   batch_size = min(batch_size,num_rows)
   all_parsed_responses <- list()
@@ -72,16 +79,8 @@ eval_translations <- function(translated_items, back_translated_items, guideline
     round_trip_json_batch <- jsonlite::toJSON(current_batch_dt, pretty = TRUE, auto_unbox = TRUE)
     p2_batch <- prompt_evaluation(round_trip_json_batch, guidelines = guidelines) # Assuming prompt_evaluation is defined
 
-    eval_response_batch <- chat$chat(p2_batch)
-    clean_response_json_batch <- gsub("```json|```", "", eval_response_batch)
-
-    parsed_response_batch <- tryCatch({
-      data.table::data.table(jsonlite::fromJSON(clean_response_json_batch))
-    }, error = function(e) {
-      warning(paste0("Batch ", i, ": Failed to parse LLM's JSON response: ", e$message))
-      warning(paste0("Batch ", i, ": Raw LLM response was:\n", eval_response_batch))
-      NULL # Return NULL for this batch on error, it won't be added to the list
-    })
+    parsed_response_batch <- .llm_response(p2_batch, chat = chat)
+    parsed_response_batch[, id := round_trip[start_index:end_index, id]]
 
     if (!is.null(parsed_response_batch) && nrow(parsed_response_batch) > 0) {
       all_parsed_responses[[length(all_parsed_responses) + 1]] <- parsed_response_batch
