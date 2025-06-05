@@ -62,7 +62,7 @@ prep_TranslationItems <- function(data,
     }
   }
 
-  data[, id := 1:nrow(data)]
+  if (! ("id" %in% names(data)))  data[, id := 1:nrow(data)]
 
   structure(
     list(

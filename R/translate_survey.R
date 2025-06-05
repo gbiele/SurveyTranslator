@@ -59,14 +59,29 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
   # Submit the prompt to the LLM
   translated_items_raw = chat$chat(prompt)
 
+  if (translated_items_raw == "") {
+    warning("Trying different LLM.")
+    chat = .get_chat(model = "gemini-1.5-pro-latest")
+    translated_items_raw = chat$chat(prompt)
+  }
+
   #quick fix
   translated_items_raw = gsub(" translated_item", "translated_item", translated_items_raw)
 
   # Parse the JSON response
   # Remove potential markdown code fences around JSON
-  parsed_response = jsonlite::fromJSON(gsub("```json|```", "", translated_items_raw))
+  parsed_response <- tryCatch({
+    jsonlite::fromJSON(gsub("```json|```", "", translated_items_raw))
+  }, error = function(e) {
+    message("Error parsing JSON: ", e$message)
+    return(NULL) # Or some other indicator of failure, like an empty list or NA
+  })
 
-  out = data.table::data.table(parsed_response)
+  if (!is.null(parsed_response)) {
+    out = data.table::data.table(parsed_response)
+  } else {
+    stopt("Could not parsed LLM produced JSON.")
+  }
   return(out)
 }
 
@@ -169,7 +184,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
     )
 
     if (get_instr) {
-      batch_items_to_translate <- merge(batches[batch_idx], items_to_translate, by = batch_vars)[, .(Instrument, Topic, Type, Text, Instruction, Response)]
+      batch_items_to_translate <- merge(batches[batch_idx], items_to_translate, by = batch_vars)[, .(Instrument, Topic, Type, Text, Instruction, Response, id)]
       Instructions <- items_to_translate[Instruction == batch_items_to_translate[1, Instruction] & Type == "Instr", Text]
       Response_opts <- items_to_translate[Response %in% na.omit(unique(batch_items_to_translate[, Response])) & Type == "RT", Text]
       if (length(Response_opts) > 0 & !any(batch_items_to_translate$Type == "RT"))
@@ -177,14 +192,19 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
       if (length(Instructions) > 0 & !any(batch_items_to_translate$Type == "Instr"))
         batch_items_to_translate <- rbind(batch_items_to_translate[1:length(Instructions)][, `:=`(Text = Instructions, Type = "Instr")], batch_items_to_translate)
     } else {
-      batch_items_to_translate <- merge(batches[batch_idx], items_to_translate, by = batch_vars)[, .(Instrument, Topic, Type, Text)]
+      batch_items_to_translate <- merge(batches[batch_idx], items_to_translate, by = batch_vars)[, .(Instrument, Topic, Type, Text, id)]
     }
     chat <- .get_chat()
     ITEMS <- paste0('"', paste(batch_items_to_translate$Text, collapse = '",\n "'), '"')
     current_prompt <- gsub("\\{ITEMS\\}",ITEMS,bp)
     batch_results <- .translate_llm(prompt = current_prompt, chat = chat)
     if (num_batches > 1 && batch_idx < num_batches) Sys.sleep(sleep)
-    batch_results <- cbind(batch_results, batch_items_to_translate)
+    if (nrow(batch_results) != nrow(batch_items_to_translate)) {
+      stop("Number of returned translation is not equal not number of translation items.")
+    }
+    batch_results[, id := batch_items_to_translate$id]
+    batch_results <- merge(batch_results,batch_items_to_translate, by = "id", all.y = TRUE)
+
     batch_results[, batch_idx := batch_idx]
     out <- rbind(out, batch_results)
     cat("Processed batch", batch_idx, "of", num_batches, "\n")
