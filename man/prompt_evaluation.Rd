@@ -4,7 +4,11 @@
 \alias{prompt_evaluation}
 \title{Prompt evaluation}
 \usage{
-prompt_evaluation(JSON_DATA, guidelines = default_backtrans_guidelines())
+prompt_evaluation(
+  JSON_DATA,
+  guidelines = default_eval_guidelines(),
+  task = default_eval_task()
+)
 }
 \arguments{
 \item{JSON_DATA}{A string containing JSON data.}

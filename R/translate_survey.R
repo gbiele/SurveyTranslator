@@ -42,50 +42,6 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
 }
 
 
-#' @title Submit prepared prompt to LLM and parse response
-#'
-#' @description Submits a prompt to the LLM via `chat` object and parses its JSON response.
-#'
-#' @param prompt The LLM prompt string.
-#' @param chat An `ellmer` chat object.
-#'
-#' @return A `data.table` containing `original_item` and `translated_item` pairs
-#'   extracted from the LLM's JSON response.
-#'
-#' @importFrom jsonlite fromJSON
-#' @importFrom data.table data.table
-#' @noRd
-.llm_response = function(prompt, chat) {
-  # Submit the prompt to the LLM
-  translated_items_raw = chat$chat(prompt)
-
-  if (translated_items_raw == "") {
-    warning("Trying different LLM.")
-    chat = .get_chat(model = "gemini-1.5-pro-latest")
-    translated_items_raw = chat$chat(prompt)
-  }
-
-  #quick fix
-  translated_items_raw = gsub(" translated_item", "translated_item", translated_items_raw)
-
-  # Parse the JSON response
-  # Remove potential markdown code fences around JSON
-  parsed_response <- tryCatch({
-    jsonlite::fromJSON(gsub("```json|```", "", translated_items_raw))
-  }, error = function(e) {
-    message("Error parsing JSON: ", e$message)
-    return(NULL) # Or some other indicator of failure, like an empty list or NA
-  })
-
-  if (!is.null(parsed_response)) {
-    out = data.table::data.table(parsed_response)
-  } else {
-    stopt("Could not parsed LLM produced JSON.")
-  }
-  return(out)
-}
-
-
 #' Batch process items by size
 #'
 #' @description
@@ -194,7 +150,7 @@ translate_survey <- function(items_obj, chat = NULL, llm_model = NULL, api_key =
     } else {
       batch_items_to_translate <- merge(batches[batch_idx], items_to_translate, by = batch_vars)[, .(Instrument, Topic, Type, Text, id)]
     }
-    chat <- .get_chat()
+
     ITEMS <- paste0('"', paste(batch_items_to_translate$Text, collapse = '",\n "'), '"')
     current_prompt <- gsub("\\{ITEMS\\}",ITEMS,bp)
     batch_results <- .llm_response(prompt = current_prompt, chat = chat)

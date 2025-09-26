@@ -212,7 +212,7 @@ flextable(head(evaluation[evaluation != "OK"]))
 Here are the default guidlines for the evaluation of the back translation:
 
 ```{r, results='asis'}
-cat(default_backtrans_guidelines())
+cat(default_eval_guidelines())
 ```
 
 To use different guidelines, one can first generate own guidelines and then 

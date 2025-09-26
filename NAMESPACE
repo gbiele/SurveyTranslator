@@ -2,7 +2,8 @@
 
 export(.batch_by_vars)
 export(base_prompt)
-export(default_backtrans_guidelines)
+export(default_eval_guidelines)
+export(default_eval_task)
 export(default_guidelines)
 export(eval_translations)
 export(get_examples_json)

@@ -7,7 +7,7 @@
 eval_translations(
   translated_items,
   back_translated_items,
-  guidelines = default_backtrans_guidelines(),
+  guidelines = default_eval_guidelines(),
   batch_size = 15,
   chat = NULL,
   api_key = NULL,
@@ -22,7 +22,7 @@ eval_translations(
 
 \item{back_translated_items}{A `data.table` or `data.frame` with back-translated texts ('translated_item').}
 
-\item{guidelines}{A string describing the evaluation. Defaults to `default_backtrans_guidelines()`. Custom guidelines influence evaluation emphasis (e.g., semantics, tone) or strictness.}
+\item{guidelines}{A string describing the evaluation. Defaults to `default_eval_guidelines()`. Custom guidelines influence evaluation emphasis (e.g., semantics, tone) or strictness.}
 
 \item{batch_size}{Numeric. Number of items to process in each batch. Defaults to 15.}
 

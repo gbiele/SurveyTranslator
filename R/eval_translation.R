@@ -4,7 +4,7 @@
 #'
 #' @param translated_items A `data.table` or `data.frame` with original ('Text') and translated ('translated_item') survey texts.
 #' @param back_translated_items A `data.table` or `data.frame` with back-translated texts ('translated_item').
-#' @param guidelines A string describing the evaluation. Defaults to `default_backtrans_guidelines()`. Custom guidelines influence evaluation emphasis (e.g., semantics, tone) or strictness.
+#' @param guidelines A string describing the evaluation. Defaults to `default_eval_guidelines()`. Custom guidelines influence evaluation emphasis (e.g., semantics, tone) or strictness.
 #' @param batch_size Numeric. Number of items to process in each batch. Defaults to 15.
 #' @param chat An `ellmer` chat client object. If `NULL`, initialized using `llm_model` and `api_key`.
 #' @param api_key Your LLM API key. Required if `chat` is `NULL`.
@@ -21,7 +21,7 @@
 #' @importFrom jsonlite toJSON fromJSON
 #'
 #' @export
-eval_translations <- function(translated_items, back_translated_items, guidelines = default_backtrans_guidelines(), batch_size = 15, chat = NULL, api_key = NULL, llm_model = NULL, sleep = 1, tmp_path = "tmp.Rdata", restart = FALSE) {
+eval_translations <- function(translated_items, back_translated_items, guidelines = default_eval_guidelines(), batch_size = 15, chat = NULL, api_key = NULL, llm_model = NULL, sleep = 1, tmp_path = "tmp.Rdata", restart = FALSE) {
   if (!inherits(translated_items, "data.frame")) {
     stop("`translated_items` must be a data.frame or data.table.")
   }
@@ -61,8 +61,6 @@ eval_translations <- function(translated_items, back_translated_items, guideline
   all_parsed_responses <- list()
   num_batches <- ceiling(num_rows / batch_size)
 
-  if (is.null(chat)) chat <- .get_chat(model = llm_model, api_key = api_key)
-
   i = first_idx = 1
   if (restart == TRUE) {
     load(tmp_path)
@@ -77,10 +75,18 @@ eval_translations <- function(translated_items, back_translated_items, guideline
     message(paste0("Processing batch ", i, "/", num_batches, " (rows ", start_index, "-", end_index, ")"))
 
     round_trip_json_batch <- jsonlite::toJSON(current_batch_dt, pretty = TRUE, auto_unbox = TRUE)
+    chat <- .get_chat(model = llm_model, api_key = api_key)
     p2_batch <- prompt_evaluation(round_trip_json_batch, guidelines = guidelines) # Assuming prompt_evaluation is defined
 
     parsed_response_batch <- .llm_response(p2_batch, chat = chat)
-    parsed_response_batch[, id := round_trip[start_index:end_index, id]]
+    parsed_response_batch = parsed_response_batch[id %in% current_batch_dt$id]
+    if (nrow(parsed_response_batch) != nrow(round_trip[start_index:end_index])) {
+      x = 3
+      warning("Wrong number of items returned. Trying again with gemini-2.5-pro-preview-03-25")
+      chat = .get_chat(model = "gemini-2.5-pro-preview-03-25")
+      parsed_response_batch <- .llm_response(p2_batch, chat = chat)
+      parsed_response_batch = parsed_response_batch[id %in% current_batch_dt$id]
+    }
 
     if (!is.null(parsed_response_batch) && nrow(parsed_response_batch) > 0) {
       all_parsed_responses[[length(all_parsed_responses) + 1]] <- parsed_response_batch

@@ -25,3 +25,48 @@
 
   return(chat)
 }
+
+#' @title Submit prepared prompt to LLM and parse response
+#'
+#' @description Submits a prompt to the LLM via `chat` object and parses its JSON response.
+#'
+#' @param prompt The LLM prompt string.
+#' @param chat An `ellmer` chat object.
+#' @param timeout An integer, seconds before curls returns a time out error
+#'
+#' @return A `data.table` containing `original_item` and `translated_item` pairs
+#'   extracted from the LLM's JSON response.
+#'
+#' @importFrom jsonlite fromJSON
+#' @importFrom data.table data.table
+#' @noRd
+.llm_response = function(prompt, chat, timout = 120) {
+  options(ellmer_timeout_s = timout)
+  # Submit the prompt to the LLM
+  llm_response_raw = chat$chat(prompt)
+
+  if (llm_response_raw == "") {
+    warning("Trying different LLM.")
+    chat = .get_chat(model = "gemini-1.5-pro-latest")
+    llm_response_raw = chat$chat(prompt)
+  }
+
+  #quick fix
+  llm_response_raw = gsub(" translated_item", "translated_item", llm_response_raw)
+
+  # Parse the JSON response
+  # Remove potential markdown code fences around JSON
+  parsed_response <- tryCatch({
+    jsonlite::fromJSON(gsub("```json|```", "", llm_response_raw))
+  }, error = function(e) {
+    message("Error parsing JSON: ", e$message)
+    return(NULL) # Or some other indicator of failure, like an empty list or NA
+  })
+
+  if (!is.null(parsed_response)) {
+    out = data.table::data.table(parsed_response)
+  } else {
+    stopt("Could not parsed LLM produced JSON.")
+  }
+  return(out)
+}

@@ -95,38 +95,55 @@ base_prompt = function(source_language = NULL, target_language = NULL,
 #' A string representing a JSON structure, likely for a language model prompt.
 #'
 #' @export
-prompt_evaluation = function(JSON_DATA, guidelines = default_backtrans_guidelines()) {
+prompt_evaluation = function(JSON_DATA, guidelines = default_eval_guidelines(), task = default_eval_task()) {
   prompt =
   paste('
 {
-  "contents": [
-    {
-      "role": "user",
-      "parts": [
+      "Your role": "You are a highly experienced and meticulous translator specializing in digital mental health interventions and technical application content",
+      "Instructions": [
         {
-          "text":
-          ', guidelines,'
+          "Your task":', task,',
+          "Your task guidelines":', guidelines,',
 
-          You will receive a JSON array, where each object contains an \'original\' statement, its \'translation\', and its \'back_translation\'.
+          You will receive a JSON array, where each object contains an \'original\' statement, its \'translation\', and its \'back_translation\' and an \'id\' variable.
 
           For each item, perform the following steps:
             1.  **Compare:** Analyze the \'original\' statement against its \'back_translation\'
             2.  **Evaluate Meaning:** Determine if their core meanings are identical.
             3.  **Generate Output:** Create a new JSON array. Each object in this new
-                array should include all original fields (\'original\', \'translation\', \'back_translation\')
+                array should include all original fields (\'original\', \'translation\', \'back_translation\', \'id\')
                 plus a new field titled \'evaluation\'.
                 The \'evaluation\' field must follow these rules:
                   * Set to \'OK\' if the meanings of the \'original\' and \'back_translation\' are identical.
                   * Set to \'deviation:[justification]\' if the meanings are not identical.
                   The \'[justification]\' must be a concise and clear explanation of the semantic discrepancy.
                 Ensure the final output is a valid JSON array of objects.
-
-                Here is the JSON data you need to process, which will follow this introductory text:
-                ',JSON_DATA,'"
-        }
-      ]
-    }
-  ]
+        },
+      "Example output": [
+      {
+        "id": "1",
+        "original": "Take quiz",
+        "translation": "Ta quiz",
+        "back_translation": "Take quiz",
+        "evaluation": "OK"
+      },
+      {
+        "id": "2",
+        "original": "Want to check how you are doing?",
+        "translation": "Vil du sjekke hvordan det går med deg?",
+        "back_translation": "Do you want to check how you are doing?",
+        "evaluation": "OK"
+      },
+      {
+        "id": "3",
+        "original": "Conscious Moments",
+        "translation": "Bevisste øyeblikk",
+        "back_translation": "Mindful moments",
+        "evaluation": "deviation: \'Conscious\' and \'Mindful\' have slightly different connotations. \'Conscious\' implies awareness, while \'Mindful\' implies a focused awareness."
+      }
+    ]
+      ],
+       "Objects to evaluate": ',JSON_DATA,',
 }
 ')
   return(prompt)
@@ -158,17 +175,29 @@ default_guidelines = function() {
 #' Default guidelines for translation.
 #'
 #' @description
+#' Evaluation task that is added to the LLM prompt
+#'
+#' @returns
+#' A character string containing default evaluation guidelines.
+#'
+#' @export
+default_eval_task = function() {
+  guidelines =
+'"Your task is to evaluate the semantic and tonal equivalence between original survey statements and their back-translated versions."'
+  return(guidelines)
+}
+
+#' Default guidelines for translation.
+#'
+#' @description
 #' Evaluation guidelines that are added to the LLM prompt
 #'
 #' @returns
 #' A character string containing default evaluation guidelines.
 #'
 #' @export
-default_backtrans_guidelines = function() {
+default_eval_guidelines = function() {
   guidelines =
-'
-       "Your task is to evaluate the semantic and tonal equivalence between original survey statements and their back-translated versions."
-       "Be relatively strict in your evaluation, nuances can matter."
-'
+'"Be relatively strict in your evaluation, nuances can matter."'
   return(guidelines)
 }
